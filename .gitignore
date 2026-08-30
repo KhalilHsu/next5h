@@ -1,0 +1,24 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Swift / Xcode Build & Artifacts
+/.build/
+/Next5h.app/
+*.xcuserstate
+.swiftpm/
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Local Logs & Caches
+*.log
+*.tmp
+*.swp
+*~
