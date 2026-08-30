@@ -21,6 +21,11 @@ public struct QueueListView: View {
             
             Divider()
             
+            // 电源与休眠唤醒状态小贴士
+            PowerQuickTipBanner()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+            
             if queueManager.jobs.isEmpty {
                 VStack(spacing: 12) {
                     Spacer()

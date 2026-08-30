@@ -4,13 +4,28 @@ public struct PermissionsCardView: View {
     @State private var hasNotification: Bool = true
     @State private var hasAccessibility: Bool = true
     @State private var hasPowerRTC: Bool = true
+    @State private var showPowerSheet: Bool = false
     
     public init() {}
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("🛡 系统权限与守护保障")
-                .font(.headline)
+            HStack {
+                Text("🛡 系统权限与守护保障")
+                    .font(.headline)
+                Spacer()
+                Button {
+                    showPowerSheet = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.shield")
+                        Text("休眠与唤醒支持指南")
+                    }
+                    .font(.caption2)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
             
             VStack(spacing: 8) {
                 PermissionItemRow(title: "系统通知权限 (Notification)", icon: "bell.badge.fill", isGranted: hasNotification)
@@ -21,6 +36,9 @@ public struct PermissionsCardView: View {
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .sheet(isPresented: $showPowerSheet) {
+            PowerGuidelinesSheetView()
+        }
     }
 }
 

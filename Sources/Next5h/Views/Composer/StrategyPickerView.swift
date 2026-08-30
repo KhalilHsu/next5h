@@ -85,6 +85,12 @@ public struct StrategyPickerView: View {
                 }
             }
             .padding(.top, 2)
+            
+            Divider()
+                .padding(.vertical, 2)
+            
+            // 锁屏与休眠唤醒保障提示
+            PowerQuickTipBanner()
         }
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
