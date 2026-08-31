@@ -16,6 +16,8 @@ public struct MainSplitView: View {
                     JobComposerView()
                 case .queue:
                     QueueListView()
+                case .history:
+                    HistoryListView()
                 case .dashboard:
                     QuotaDashboardView()
                 }

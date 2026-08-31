@@ -77,6 +77,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         mainWindow?.makeKeyAndOrderFront(nil)
     }
     
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showMainWindow()
+        return true
+    }
+    
     // MARK: - NSWindowDelegate (窗口点击红叉时隐藏而不是销毁，并隐藏 Dock 图标)
     public func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)

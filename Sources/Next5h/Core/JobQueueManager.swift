@@ -152,21 +152,55 @@ public final class JobQueueManager: ObservableObject {
             _ = await NetworkMonitor.shared.waitForNetworkReadiness()
             
             // 3. 根据分发模式派发
+            let startTime = Date()
             var isSuccessful = false
+            var errorDetail: String? = nil
             do {
                 if job.dispatchMode == .silentAPI {
                     isSuccessful = try await SilentAPIDispatcher.shared.dispatch(job: job)
                 } else {
                     isSuccessful = try await ForegroundUIDispatcher.shared.dispatch(job: job)
                 }
+                if !isSuccessful {
+                    errorDetail = "派发返回失败或发生网络异常"
+                }
             } catch {
+                errorDetail = error.localizedDescription
                 print("⚠️ [JobQueueManager] 派发异常: \(error)")
             }
             
+            let duration = Date().timeIntervalSince(startTime)
             let finalSuccess = isSuccessful
+            let finalError = errorDetail
             
-            // 4. 更新任务状态与每日循环调度
+            // 4. 生成历史记录并保存
+            let historyRecord = DispatchHistoryRecord(
+                jobId: job.id,
+                title: job.title,
+                prompt: job.prompt,
+                dispatchedAt: startTime,
+                durationSeconds: duration,
+                isSuccess: finalSuccess,
+                errorMessage: finalError,
+                modelSlug: job.model.slug,
+                modelDisplayName: job.model.displayName,
+                reasoningEffort: job.reasoningEffort.displayName,
+                speed: job.speed.displayName,
+                destinationSummary: job.destination.summary,
+                targetSessionId: {
+                    if case .existing(let tid, _) = job.destination.conversationAction {
+                        return tid
+                    }
+                    return nil
+                }(),
+                dispatchMode: job.dispatchMode,
+                triggerStrategySummary: job.strategy.displayName
+            )
+            
+            // 5. 更新任务状态与每日循环调度
             await MainActor.run {
+                DispatchHistoryManager.shared.addRecord(historyRecord)
+                
                 if let idx = self.jobs.firstIndex(where: { $0.id == jobId }) {
                     if finalSuccess {
                         self.jobs[idx].executedAt = Date()
@@ -188,12 +222,72 @@ public final class JobQueueManager: ObservableObject {
                             self.jobs[idx].status = .completed(Date())
                         }
                     } else {
-                        self.jobs[idx].status = .failed("发送失败或发生网络异常")
+                        self.jobs[idx].status = .failed(finalError ?? "发送失败或发生网络异常")
                     }
                     self.saveJobs()
                 }
                 
-                // 5. 释放电源断言
+                // 6. 释放电源断言
+                PowerGuardian.shared.releaseSleepAssertion()
+            }
+        }
+    }
+    
+    /// 直接执行一次性派发（用于历史记录的“再次发送”）
+    public func executeDirectJob(_ job: ScheduledJob) {
+        Task {
+            PowerGuardian.shared.acquireSleepAssertion(reason: "Next5h 再次发送任务: \(job.title)")
+            _ = await NetworkMonitor.shared.waitForNetworkReadiness()
+            
+            let startTime = Date()
+            var isSuccessful = false
+            var errorDetail: String? = nil
+            do {
+                if job.dispatchMode == .silentAPI {
+                    isSuccessful = try await SilentAPIDispatcher.shared.dispatch(job: job)
+                } else {
+                    isSuccessful = try await ForegroundUIDispatcher.shared.dispatch(job: job)
+                }
+                if !isSuccessful {
+                    errorDetail = "派发返回失败或发生网络异常"
+                }
+            } catch {
+                errorDetail = error.localizedDescription
+                print("⚠️ [JobQueueManager] 直接派发异常: \(error)")
+            }
+            
+            let duration = Date().timeIntervalSince(startTime)
+            let finalSuccess = isSuccessful
+            let finalError = errorDetail
+            
+            let historyRecord = DispatchHistoryRecord(
+                jobId: job.id,
+                title: job.title,
+                prompt: job.prompt,
+                dispatchedAt: startTime,
+                durationSeconds: duration,
+                isSuccess: finalSuccess,
+                errorMessage: finalError,
+                modelSlug: job.model.slug,
+                modelDisplayName: job.model.displayName,
+                reasoningEffort: job.reasoningEffort.displayName,
+                speed: job.speed.displayName,
+                destinationSummary: job.destination.summary,
+                targetSessionId: {
+                    if case .existing(let tid, _) = job.destination.conversationAction {
+                        return tid
+                    }
+                    return nil
+                }(),
+                dispatchMode: job.dispatchMode,
+                triggerStrategySummary: "手动再次发送"
+            )
+            
+            await MainActor.run {
+                DispatchHistoryManager.shared.addRecord(historyRecord)
+                if finalSuccess {
+                    NotificationService.shared.sendCompletionNotification(for: job)
+                }
                 PowerGuardian.shared.releaseSleepAssertion()
             }
         }

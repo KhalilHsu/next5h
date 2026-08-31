@@ -3,6 +3,7 @@ import SwiftUI
 public struct SidebarView: View {
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var queueManager = JobQueueManager.shared
+    @ObservedObject private var historyManager = DispatchHistoryManager.shared
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     
     @State private var isHoveringDashboardCard = false
@@ -31,7 +32,7 @@ public struct SidebarView: View {
             
             Divider()
             
-            // 导航项 (只保留 任务编排 和 调度队列)
+            // 导航项 (任务编排、调度队列、历史发送)
             List(selection: $appState.selectedTab) {
                 Section("工作区") {
                     ForEach(NavigationTab.sidebarWorkspaceTabs) { tab in
@@ -45,6 +46,13 @@ public struct SidebarView: View {
                                     .padding(.vertical, 2)
                                     .background(Capsule().fill(Color.orange.opacity(0.2)))
                                     .foregroundStyle(.orange)
+                            } else if tab == .history && !historyManager.records.isEmpty {
+                                Text("\(historyManager.records.count)")
+                                    .font(.caption2.bold())
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .tag(tab)

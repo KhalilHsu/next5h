@@ -77,4 +77,117 @@ final class Next5hTests: XCTestCase {
         let normalQuota = QuotaSnapshot(usedPercent: 40, resetsAt: future, windowMinutes: 300)
         XCTAssertFalse(normalQuota.isLocked)
     }
+    
+    func testDispatchHistoryRecordModel() {
+        let record = DispatchHistoryRecord(
+            title: "每日打卡",
+            prompt: "嗨",
+            dispatchedAt: Date(),
+            durationSeconds: 1.25,
+            isSuccess: true,
+            modelSlug: "gpt-5.6-luna",
+            modelDisplayName: "5.6 Luna",
+            reasoningEffort: "低",
+            speed: "标准",
+            destinationSummary: "新建会话",
+            targetSessionId: "session-abc-123",
+            dispatchMode: .silentAPI,
+            triggerStrategySummary: "每天 07:00 准时触发"
+        )
+        
+        XCTAssertEqual(record.title, "每日打卡")
+        XCTAssertTrue(record.isSuccess)
+        XCTAssertEqual(record.durationSeconds, 1.25)
+        XCTAssertEqual(record.targetSessionId, "session-abc-123")
+        
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+        guard let data = try? encoder.encode(record),
+              let decoded = try? decoder.decode(DispatchHistoryRecord.self, from: data) else {
+            XCTFail("Failed to encode/decode DispatchHistoryRecord")
+            return
+        }
+        XCTAssertEqual(decoded.id, record.id)
+        XCTAssertEqual(decoded.title, record.title)
+    }
+    
+    func testDispatchHistoryManagerOperations() {
+        let manager = DispatchHistoryManager.shared
+        let initialCount = manager.records.count
+        
+        let record = DispatchHistoryRecord(
+            title: "单元测试任务",
+            prompt: "Test prompt",
+            isSuccess: true,
+            modelDisplayName: "5.6 Sol",
+            reasoningEffort: "高",
+            destinationSummary: "测试项目"
+        )
+        
+        manager.addRecord(record)
+        XCTAssertEqual(manager.records.first?.id, record.id)
+        XCTAssertEqual(manager.records.count, initialCount + 1)
+        
+        manager.deleteRecord(id: record.id)
+        XCTAssertEqual(manager.records.count, initialCount)
+    }
+    
+    func testJobQueueManagerLifecycle() {
+        let queue = JobQueueManager.shared
+        let originalJobs = queue.jobs
+        
+        let testJob = ScheduledJob(
+            id: UUID(),
+            title: "生命周期测试任务",
+            prompt: "echo test",
+            strategy: .dailyAtTime(hour: 7, minute: 0),
+            dispatchMode: .silentAPI
+        )
+        
+        // 1. 测试添加
+        queue.addJob(testJob)
+        XCTAssertTrue(queue.jobs.contains(where: { $0.id == testJob.id }))
+        
+        // 2. 测试暂停与恢复
+        queue.togglePause(id: testJob.id)
+        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+            XCTAssertEqual(found.status, .paused)
+        } else {
+            XCTFail("Job not found")
+        }
+        
+        queue.togglePause(id: testJob.id)
+        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+            XCTAssertEqual(found.status, .pending)
+            XCTAssertNotNil(found.scheduledExecutionDate)
+        }
+        
+        // 3. 测试更新
+        var modified = testJob
+        modified.title = "已修改的测试任务"
+        queue.updateJob(modified)
+        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+            XCTAssertEqual(found.title, "已修改的测试任务")
+        }
+        
+        // 4. 测试删除
+        queue.deleteJob(id: testJob.id)
+        XCTAssertFalse(queue.jobs.contains(where: { $0.id == testJob.id }))
+        
+        // 恢复原始队列
+        queue.jobs = originalJobs
+        queue.saveJobs()
+    }
+    
+    func testAppStateNavigationIntegrity() {
+        let tabs = NavigationTab.sidebarWorkspaceTabs
+        XCTAssertEqual(tabs.count, 3)
+        XCTAssertEqual(tabs[0], .composer)
+        XCTAssertEqual(tabs[1], .queue)
+        XCTAssertEqual(tabs[2], .history)
+        
+        XCTAssertEqual(NavigationTab.composer.title, "任务编排")
+        XCTAssertEqual(NavigationTab.queue.title, "调度队列")
+        XCTAssertEqual(NavigationTab.history.title, "历史发送")
+    }
 }

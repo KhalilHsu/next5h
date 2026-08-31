@@ -4,6 +4,7 @@ import Combine
 public enum NavigationTab: String, CaseIterable, Identifiable {
     case composer = "composer"
     case queue = "queue"
+    case history = "history"
     case dashboard = "dashboard"
     
     public var id: String { rawValue }
@@ -12,6 +13,7 @@ public enum NavigationTab: String, CaseIterable, Identifiable {
         switch self {
         case .composer: return "任务编排"
         case .queue: return "调度队列"
+        case .history: return "历史发送"
         case .dashboard: return "额度仪表盘"
         }
     }
@@ -20,13 +22,14 @@ public enum NavigationTab: String, CaseIterable, Identifiable {
         switch self {
         case .composer: return "square.and.pencil"
         case .queue: return "list.bullet.rectangle"
+        case .history: return "clock.arrow.circlepath"
         case .dashboard: return "gauge.with.needle"
         }
     }
     
-    /// 工作区主列表（只保留核心任务管理，仪表盘下沉至左下角卡片入口）
+    /// 工作区主列表（任务编排、调度队列、历史发送）
     public static var sidebarWorkspaceTabs: [NavigationTab] {
-        return [.composer, .queue]
+        return [.composer, .queue, .history]
     }
 }
 
