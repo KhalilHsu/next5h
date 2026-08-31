@@ -25,8 +25,11 @@ public final class JobQueueManager: ObservableObject {
         if let data = try? Data(contentsOf: persistenceURL),
            let saved = try? JSONDecoder().decode([ScheduledJob].self, from: data),
            !saved.isEmpty {
-            // 自动确保所有待发任务都有精确计算的未来执行时间
-            self.jobs = saved.map { job in
+            // 自动确保所有待发任务都有精确计算的未来执行时间，并自动清理已完成的一次性历史任务
+            self.jobs = saved.compactMap { job in
+                if case .completed = job.status {
+                    return nil // 已完成任务已在历史留痕中，队列中不再保留
+                }
                 var j = job
                 if j.status == .pending {
                     if j.scheduledExecutionDate == nil || j.scheduledExecutionDate! <= Date() {
@@ -221,7 +224,9 @@ public final class JobQueueManager: ObservableObject {
                             _ = PowerGuardian.shared.scheduleWakeEvent(at: tomorrowDate)
                             print("🔄 [JobQueueManager] 每日任务 [\(self.jobs[idx].title)] 执行完成，已自动排定明天执行时间: \(tomorrowDate)")
                         } else {
-                            self.jobs[idx].status = .completed(Date())
+                            // 一次性任务派发成功后已沉淀到历史记录，自动从待发调度队列移除
+                            let removedJob = self.jobs.remove(at: idx)
+                            print("✅ [JobQueueManager] 一次性任务 [\(removedJob.title)] 派发成功，已移出待发调度队列")
                         }
                     } else {
                         self.jobs[idx].status = .failed(finalError ?? "发送失败或发生网络异常")

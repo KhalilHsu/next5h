@@ -85,10 +85,10 @@ struct FloatingPillTabBar: View {
                 icon: "list.bullet.rectangle",
                 title: "调度队列",
                 badgeText: {
-                    let count = queueManager.jobs.filter { $0.status == .pending || $0.status == .waitingForQuota }.count
+                    let count = queueManager.jobs.count
                     return count > 0 ? "\(count)" : nil
                 }(),
-                badgeColor: .orange
+                badgeColor: .secondary
             )
             
             // 2. 历史留痕

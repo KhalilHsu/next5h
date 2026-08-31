@@ -16,12 +16,12 @@ public struct QueueListView: View {
                             .font(.title2.bold())
                         
                         if !queueManager.jobs.isEmpty {
-                            Text("生效中 \(queueManager.jobs.filter { $0.status == .pending || $0.status == .waitingForQuota }.count) 项")
+                            Text("\(queueManager.jobs.count) 项待执行")
                                 .font(.caption.bold())
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(Capsule().fill(Color.orange.opacity(0.15)))
-                                .foregroundStyle(.orange)
+                                .background(Capsule().fill(Color.secondary.opacity(0.12)))
+                                .foregroundStyle(.secondary)
                         }
                     }
                     
