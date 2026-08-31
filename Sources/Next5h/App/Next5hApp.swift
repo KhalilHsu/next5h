@@ -56,9 +56,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         window.center()
         window.setFrameAutosaveName("Next5hMainWindow")
         window.contentView = hostingView
-        window.title = "Next5h - Codex 5H 自动续航工作台"
+        window.title = "Next5h"
+        window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
-        window.toolbarStyle = .unified
+        window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.delegate = self
         
