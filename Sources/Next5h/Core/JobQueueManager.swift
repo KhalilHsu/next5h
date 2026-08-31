@@ -90,6 +90,8 @@ public final class JobQueueManager: ObservableObject {
             jobs[index] = updated
             saveJobs()
             print("💾 [JobQueueManager] 已成功保存并更新任务: \(updated.title), 下次执行时间: \(nextDate)")
+        } else {
+            addJob(job)
         }
     }
     

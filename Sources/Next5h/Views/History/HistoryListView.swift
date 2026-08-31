@@ -342,13 +342,13 @@ struct HistoryRecordRowView: View {
                 .buttonStyle(.borderless)
                 .disabled(isResending)
                 
-                // 2. 载入任务编排器微调 (直接唤起 Sheet)
+                // 2. 以此历史记录为模板新建任务 (直接唤起 Sheet)
                 Button {
                     loadIntoComposer()
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle")
-                        Text("载入并微调...")
+                        Image(systemName: "doc.badge.plus")
+                        Text("以此为模板新建")
                     }
                     .font(.caption)
                 }

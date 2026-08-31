@@ -23,8 +23,9 @@ public struct JobEditorSheetView: View {
         self.editingJob = job
     }
     
-    private var isEditing: Bool {
-        editingJob != nil
+    private var isExistingJob: Bool {
+        guard let id = editingJob?.id else { return false }
+        return queueManager.jobs.contains(where: { $0.id == id })
     }
     
     public var body: some View {
@@ -33,15 +34,15 @@ public struct JobEditorSheetView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Image(systemName: isEditing ? "pencil.circle.fill" : "plus.circle.fill")
+                        Image(systemName: isExistingJob ? "pencil.circle.fill" : "plus.circle.fill")
                             .font(.title3)
-                            .foregroundStyle(isEditing ? Color.orange : Color.accentColor)
+                            .foregroundStyle(isExistingJob ? Color.orange : Color.accentColor)
                         
-                        Text(isEditing ? "编辑任务" : "新建调度任务")
+                        Text(isExistingJob ? "编辑任务" : "新建调度任务")
                             .font(.title3.bold())
                     }
                     
-                    Text(isEditing ? "修改已排定任务的参数与 User Query 内容" : "配置到点自动派发至本地 Codex 客户端的 User Query")
+                    Text(isExistingJob ? "修改已排定任务的参数与 User Query 内容" : "配置到点自动派发至本地 Codex 客户端的 User Query")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -68,7 +69,7 @@ public struct JobEditorSheetView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     // 若是新建模式，提供快捷场景模板 Pill
-                    if !isEditing {
+                    if !isExistingJob {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("⚡️ 快捷模板填入 (可选)")
                                 .font(.caption.bold())
@@ -180,12 +181,12 @@ public struct JobEditorSheetView: View {
                     saveJob()
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: isEditing ? "checkmark.circle.fill" : "paperplane.fill")
-                        Text(isEditing ? "保存任务修改" : "加入调度队列")
+                        Image(systemName: isExistingJob ? "checkmark.circle.fill" : "paperplane.fill")
+                        Text(isExistingJob ? "保存任务修改" : "加入调度队列")
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(isEditing ? .orange : .accentColor)
+                .tint(isExistingJob ? .orange : .accentColor)
                 .controlSize(.regular)
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
