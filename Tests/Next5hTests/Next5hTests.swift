@@ -207,4 +207,16 @@ final class Next5hTests: XCTestCase {
         XCTAssertFalse(appState.isShowingJobSheet)
         XCTAssertNil(appState.editingJob)
     }
+    
+    func testStatusItemRendererMonochromeDualCylinder() {
+        let normalImg = StatusItemRenderer.renderDualCylinder(remaining5h: 60.0, remainingWeekly: 93.0, isLocked: false)
+        XCTAssertEqual(normalImg.size.width, 28.0)
+        XCTAssertEqual(normalImg.size.height, 22.0)
+        XCTAssertFalse(normalImg.isTemplate)
+        
+        let lockedImg = StatusItemRenderer.renderDualCylinder(remaining5h: 0.0, remainingWeekly: 0.0, isLocked: true)
+        XCTAssertEqual(lockedImg.size.width, 28.0)
+        XCTAssertEqual(lockedImg.size.height, 22.0)
+    }
 }
+

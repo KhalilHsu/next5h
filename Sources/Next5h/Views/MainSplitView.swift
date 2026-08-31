@@ -91,14 +91,12 @@ struct FloatingPillTabBar: View {
                 badgeColor: .secondary
             )
             
-            // 2. 历史留痕
+            // 2. 历史留痕 (移除常驻数字，保持极简)
             pillItem(
                 tab: .history,
                 icon: "clock.arrow.circlepath",
                 title: "历史留痕",
-                badgeText: {
-                    return !historyManager.records.isEmpty ? "\(historyManager.records.count)" : nil
-                }(),
+                badgeText: nil,
                 badgeColor: .secondary
             )
             
