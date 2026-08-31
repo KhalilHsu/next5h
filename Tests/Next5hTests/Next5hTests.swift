@@ -180,14 +180,31 @@ final class Next5hTests: XCTestCase {
     }
     
     func testAppStateNavigationIntegrity() {
-        let tabs = NavigationTab.sidebarWorkspaceTabs
+        let tabs = NavigationTab.allCases
         XCTAssertEqual(tabs.count, 3)
-        XCTAssertEqual(tabs[0], .composer)
-        XCTAssertEqual(tabs[1], .queue)
-        XCTAssertEqual(tabs[2], .history)
+        XCTAssertEqual(tabs[0], .queue)
+        XCTAssertEqual(tabs[1], .history)
+        XCTAssertEqual(tabs[2], .dashboard)
         
-        XCTAssertEqual(NavigationTab.composer.title, "任务编排")
         XCTAssertEqual(NavigationTab.queue.title, "调度队列")
-        XCTAssertEqual(NavigationTab.history.title, "历史发送")
+        XCTAssertEqual(NavigationTab.history.title, "历史留痕")
+        XCTAssertEqual(NavigationTab.dashboard.title, "额度看板")
+        
+        let appState = AppState.shared
+        XCTAssertEqual(appState.selectedTab, .queue)
+        
+        // 测试 Sheet 弹窗控制
+        appState.openNewJobSheet()
+        XCTAssertTrue(appState.isShowingJobSheet)
+        XCTAssertNil(appState.editingJob)
+        
+        let testJob = ScheduledJob.makeDefaultPreset()
+        appState.openEditJobSheet(job: testJob)
+        XCTAssertTrue(appState.isShowingJobSheet)
+        XCTAssertEqual(appState.editingJob?.id, testJob.id)
+        
+        appState.closeJobSheet()
+        XCTAssertFalse(appState.isShowingJobSheet)
+        XCTAssertNil(appState.editingJob)
     }
 }

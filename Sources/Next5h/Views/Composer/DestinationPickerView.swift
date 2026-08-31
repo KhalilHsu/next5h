@@ -25,42 +25,43 @@ public struct DestinationPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("🎯 发送目标 (Target Destination)")
-                    .font(.headline)
+                Label("发送目标 (Target Destination)", systemImage: "arrow.triangle.branch")
+                    .font(.subheadline.bold())
                 Spacer()
-                Text("无项目会话: \(sessionRouter.noProjectSessions.count) 条 · 本地项目: \(sessionRouter.realCodexProjects.count) 个")
+                Text("无项目会话: \(sessionRouter.noProjectSessions.count) · 本地项目: \(sessionRouter.realCodexProjects.count)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
             
             // 第一步：选择项目归属
             VStack(alignment: .leading, spacing: 6) {
-                Text("第一步：选择归属范围")
+                Text("归属范围")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                 
                 Picker("", selection: $isSpecificProject) {
                     Text("🌐 无项目 (常规独立会话)").tag(false)
-                    Text("📁 本地项目 (\(sessionRouter.realCodexProjects.count)个)").tag(true)
+                    Text("📁 本地项目 (\(sessionRouter.realCodexProjects.count) 个)").tag(true)
                 }
                 .pickerStyle(.segmented)
                 
                 if isSpecificProject {
-                    HStack {
+                    HStack(spacing: 8) {
                         Text("所属项目:")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         
                         Picker("", selection: $selectedProjectId) {
                             ForEach(sessionRouter.realCodexProjects) { proj in
-                                Text("\(proj.name) (\(proj.sessions.count)个会话)").tag(proj.id)
+                                Text("\(proj.name) (\(proj.sessions.count) 会话)").tag(proj.id)
                             }
                         }
                         .pickerStyle(.menu)
+                        .labelsHidden()
                         
                         Spacer()
                     }
-                    .padding(.top, 4)
+                    .padding(.top, 2)
                 }
             }
             
@@ -68,13 +69,13 @@ public struct DestinationPickerView: View {
             
             // 第二步：选择会话形式
             VStack(alignment: .leading, spacing: 6) {
-                Text("第二步：选择对话形式")
+                Text("对话形式")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                 
                 Picker("", selection: $isNewSession) {
-                    Text("🆕 新建会话").tag(true)
-                    Text("💬 追加到已有会话 (\(availableSessions.count)条)").tag(false)
+                    Text("🆕 新建独立会话").tag(true)
+                    Text("💬 追加到已有会话 (\(availableSessions.count) 条)").tag(false)
                 }
                 .pickerStyle(.segmented)
                 
@@ -84,9 +85,9 @@ public struct DestinationPickerView: View {
                             Text("⚠️ 当前分类下暂无可追加的历史会话")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .padding(.top, 4)
+                                .padding(.top, 2)
                         } else {
-                            HStack {
+                            HStack(spacing: 8) {
                                 Text(isSpecificProject ? "项目内部会话:" : "独立历史会话:")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -97,16 +98,19 @@ public struct DestinationPickerView: View {
                                     }
                                 }
                                 .pickerStyle(.menu)
+                                .labelsHidden()
+                                
+                                Spacer()
                             }
-                            .padding(.top, 4)
+                            .padding(.top, 2)
                         }
                     }
                 }
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
         .onChange(of: isSpecificProject) { _, _ in
             onScopeChanged()
         }
@@ -130,7 +134,6 @@ public struct DestinationPickerView: View {
                 selectedProjectId = sessionRouter.realCodexProjects.first?.id ?? ""
             }
         }
-        // 重置选中的 session 为当前列表首项
         selectedSessionId = availableSessions.first?.id ?? ""
         syncDestination()
     }

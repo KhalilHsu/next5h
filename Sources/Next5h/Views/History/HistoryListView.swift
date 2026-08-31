@@ -72,7 +72,7 @@ public struct HistoryListView: View {
                     .controlSize(.small)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
             .padding(.top, 16)
             .padding(.bottom, 12)
             
@@ -112,7 +112,7 @@ public struct HistoryListView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 180)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
             .padding(.vertical, 8)
             .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
             
@@ -136,8 +136,10 @@ public struct HistoryListView: View {
                         .multilineTextAlignment(.center)
                     
                     if historyManager.records.isEmpty {
-                        Button("➕ 前往创建任务") {
-                            appState.selectedTab = .composer
+                        Button {
+                            appState.openNewJobSheet()
+                        } label: {
+                            Label("新建任务", systemImage: "plus")
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
@@ -152,9 +154,11 @@ public struct HistoryListView: View {
                     ForEach(filteredRecords) { record in
                         HistoryRecordRowView(record: record)
                             .padding(.vertical, 4)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                 }
-                .listStyle(.inset)
+                .listStyle(.plain)
             }
         }
         .confirmationDialog(
@@ -338,13 +342,13 @@ struct HistoryRecordRowView: View {
                 .buttonStyle(.borderless)
                 .disabled(isResending)
                 
-                // 2. 载入任务编排器微调
+                // 2. 载入任务编排器微调 (直接唤起 Sheet)
                 Button {
                     loadIntoComposer()
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "square.and.pencil")
-                        Text("载入编排器")
+                        Image(systemName: "pencil.circle")
+                        Text("载入并微调...")
                     }
                     .font(.caption)
                 }
@@ -379,8 +383,8 @@ struct HistoryRecordRowView: View {
                 .buttonStyle(.borderless)
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
     }
     
@@ -433,7 +437,7 @@ struct HistoryRecordRowView: View {
         case "轻度", "low": effort = .low
         case "中", "medium": effort = .medium
         case "高", "high": effort = .high
-        case "极高", "xhigh": effort = .high
+        case "极高", "xhigh": effort = .xhigh
         case "Max", "max": effort = .max
         case "Ultra", "ultra": effort = .ultra
         default: effort = .low
@@ -459,7 +463,6 @@ struct HistoryRecordRowView: View {
             scheduledExecutionDate: nil
         )
         
-        appState.editingJob = job
-        appState.selectedTab = .composer
+        appState.openEditJobSheet(job: job)
     }
 }

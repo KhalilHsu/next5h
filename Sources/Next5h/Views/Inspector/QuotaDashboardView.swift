@@ -19,27 +19,36 @@ public struct QuotaDashboardView: View {
             VStack(alignment: .leading, spacing: 16) {
                 // 顶部标题与刷新
                 HStack {
-                    Text("⚡️ 5H 与周额度监控看板")
-                        .font(.title2.bold())
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("⚡️ 5H 与周额度监控看板")
+                            .font(.title2.bold())
+                        Text("直连 OpenAI 官方接口实时探活与滑动窗口用量监测")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
                     Spacer()
+                    
                     Button(action: { quotaEngine.refreshNow() }) {
-                        Label(quotaEngine.isProbing ? "同步中..." : "刷新", systemImage: "arrow.clockwise")
+                        Label(quotaEngine.isProbing ? "同步中..." : "立即刷新", systemImage: "arrow.clockwise")
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.regular)
                     .disabled(quotaEngine.isProbing)
                 }
+                .padding(.horizontal, 4)
                 
                 // 本地 ChatGPT 客户端连接状态
                 HStack(spacing: 8) {
                     Circle()
                         .fill(quotaEngine.currentQuota.isConnectedToChatGPTApp ? Color.green : Color.gray)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 8, height: 8)
                     if quotaEngine.currentQuota.isConnectedToChatGPTApp {
                         Text("已连接本地 ChatGPT 客户端 (PID: \(quotaEngine.currentQuota.chatGPTPid ?? 0))")
                             .font(.caption.bold())
                             .foregroundStyle(.green)
                     } else {
-                        Text("本地 ChatGPT.app 未运行 (点击刷新或直接启动)")
+                        Text("本地 ChatGPT.app 未运行 (无影响，Next5h 通过底层 Token 独立监控与派发)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -47,7 +56,7 @@ public struct QuotaDashboardView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor)))
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
                 
                 // 100% 对齐官方“剩余”逻辑的双卡片
                 HStack(spacing: 14) {
@@ -100,8 +109,8 @@ public struct QuotaDashboardView: View {
                         }
                     }
                     .padding(14)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                     
                     // 2. 7 天每周额度窗口卡片
                     let weeklyRem = quotaEngine.currentQuota.weeklyRemainingPercent ?? 100.0
@@ -153,8 +162,8 @@ public struct QuotaDashboardView: View {
                         }
                     }
                     .padding(14)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                 }
                 
                 // 快速手动校准卡片
@@ -162,11 +171,11 @@ public struct QuotaDashboardView: View {
                     HStack {
                         Image(systemName: "wrench.and.screwdriver.fill")
                             .foregroundStyle(.orange)
-                        Text("快捷额度校准 (如当前已被 ChatGPT 限流)")
+                        Text("快捷额度校准 (如当前在其它设备已被限流)")
                             .font(.subheadline.bold())
                     }
                     
-                    Text("若你在 ChatGPT 客户端提问被卡住，可一键将倒计时同步至 Next5h：")
+                    Text("若你在手机或网页端提问被卡住，可一键将倒计时同步至 Next5h：")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     
@@ -189,8 +198,8 @@ public struct QuotaDashboardView: View {
                     .controlSize(.small)
                 }
                 .padding(14)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                 
                 // 探针运行日志
                 ProbeLogView()
@@ -198,7 +207,7 @@ public struct QuotaDashboardView: View {
                 // 系统权限与健康状态
                 PermissionsCardView()
             }
-            .padding(16)
+            .padding(20)
         }
     }
 }

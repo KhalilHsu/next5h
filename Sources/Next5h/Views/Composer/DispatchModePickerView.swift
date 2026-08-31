@@ -9,8 +9,8 @@ public struct DispatchModePickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("🚀 发送模式 (Dispatch Mode)")
-                .font(.headline)
+            Label("发送模式 (Dispatch Mode)", systemImage: "paperplane")
+                .font(.subheadline.bold())
             
             Picker("", selection: $dispatchMode) {
                 ForEach(DispatchMode.allCases) { mode in
@@ -25,7 +25,7 @@ public struct DispatchModePickerView: View {
                 .padding(.top, 2)
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
     }
 }

@@ -2,7 +2,6 @@ import Foundation
 import Combine
 
 public enum NavigationTab: String, CaseIterable, Identifiable {
-    case composer = "composer"
     case queue = "queue"
     case history = "history"
     case dashboard = "dashboard"
@@ -11,33 +10,47 @@ public enum NavigationTab: String, CaseIterable, Identifiable {
     
     public var title: String {
         switch self {
-        case .composer: return "任务编排"
         case .queue: return "调度队列"
-        case .history: return "历史发送"
-        case .dashboard: return "额度仪表盘"
+        case .history: return "历史留痕"
+        case .dashboard: return "额度看板"
         }
     }
     
     public var iconName: String {
         switch self {
-        case .composer: return "square.and.pencil"
         case .queue: return "list.bullet.rectangle"
         case .history: return "clock.arrow.circlepath"
         case .dashboard: return "gauge.with.needle"
         }
-    }
-    
-    /// 工作区主列表（任务编排、调度队列、历史发送）
-    public static var sidebarWorkspaceTabs: [NavigationTab] {
-        return [.composer, .queue, .history]
     }
 }
 
 public final class AppState: ObservableObject {
     public static let shared = AppState()
     
-    @Published public var selectedTab: NavigationTab = .composer
+    @Published public var selectedTab: NavigationTab = .queue
+    
+    // Sheet 弹窗编排/编辑状态
+    @Published public var isShowingJobSheet: Bool = false
     @Published public var editingJob: ScheduledJob? = nil
     
     private init() {}
+    
+    /// 呼出新建任务 Sheet 弹窗
+    public func openNewJobSheet() {
+        self.editingJob = nil
+        self.isShowingJobSheet = true
+    }
+    
+    /// 呼出编辑现有任务 Sheet 弹窗
+    public func openEditJobSheet(job: ScheduledJob) {
+        self.editingJob = job
+        self.isShowingJobSheet = true
+    }
+    
+    /// 关闭 Sheet 弹窗
+    public func closeJobSheet() {
+        self.isShowingJobSheet = false
+        self.editingJob = nil
+    }
 }

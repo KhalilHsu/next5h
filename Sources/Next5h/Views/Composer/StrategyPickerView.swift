@@ -26,14 +26,14 @@ public struct StrategyPickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("⏰ 触发策略 (Trigger Strategy)")
-                .font(.headline)
+            Label("触发策略 (Trigger Strategy)", systemImage: "clock.badge.checkmark")
+                .font(.subheadline.bold())
             
             Picker("", selection: $strategyType) {
-                Text("🌅 每日定时重复").tag(1)
-                Text("⚡️ 5H解封自动 (+1m)").tag(0)
+                Text("🌅 每日定时").tag(1)
+                Text("⚡️ 5H解封 (+1m)").tag(0)
                 Text("⏳ 延时 X 小时").tag(2)
-                Text("📅 具体日期时间").tag(3)
+                Text("📅 具体时间").tag(3)
             }
             .pickerStyle(.segmented)
             
@@ -61,11 +61,11 @@ public struct StrategyPickerView: View {
                     .padding(8)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.08)))
                 } else if strategyType == 0 {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "hourglass.badge.plus")
                             .foregroundStyle(.orange)
                         if let reset = quotaEngine.currentQuota.resetsAt {
-                            Text("预计在 \(formattedTargetResetTime(reset)) 触发 (+1分钟安全缓冲)")
+                            Text("预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)")
                                 .font(.caption)
                         } else {
                             Text("当前未限流，将在 5H 额度重置时自动触发 (或在检测到限流后准时解锁)")
@@ -73,28 +73,41 @@ public struct StrategyPickerView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
                 } else if strategyType == 2 {
-                    HStack {
-                        Text("延时: \(String(format: "%.1f", delayHours)) 小时后")
-                            .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("延时时长: \(String(format: "%.1f", delayHours)) 小时后")
+                                .font(.caption.bold())
+                            Spacer()
+                        }
                         Slider(value: $delayHours, in: 0.5...12, step: 0.5)
                     }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
                 } else if strategyType == 3 {
-                    DatePicker("选择具体执行时间", selection: $customDate)
-                        .datePickerStyle(.field)
+                    HStack {
+                        Text("指定日期时间:")
+                            .font(.caption.bold())
+                        Spacer()
+                        DatePicker("", selection: $customDate)
+                            .labelsHidden()
+                            .datePickerStyle(.compact)
+                    }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
                 }
             }
-            .padding(.top, 2)
             
             Divider()
-                .padding(.vertical, 2)
             
             // 锁屏与休眠唤醒保障提示
             PowerQuickTipBanner()
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
         .onChange(of: strategyType) { _, _ in syncStrategy() }
         .onChange(of: dailyTime) { _, _ in syncStrategy() }
         .onChange(of: delayHours) { _, _ in syncStrategy() }

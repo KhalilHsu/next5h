@@ -20,13 +20,13 @@ public struct ModelAndEffortPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("🤖 模型与参数配置 (Codex)")
-                    .font(.headline)
+                Label("模型与推理参数 (Codex)", systemImage: "cpu")
+                    .font(.subheadline.bold())
                 Spacer()
                 
-                // 1:1 动态原生胶囊菜单 [ 5.6 Sol 中 ⌵ ]
+                // 原生胶囊下拉菜单 [ 5.6 Sol 中 ⌵ ]
                 Menu {
-                    // 1. 动态官方模型子菜单 (实时跟随 ~/.codex/models_cache.json 官方模型池)
+                    // 1. 动态官方模型子菜单
                     Menu {
                         ForEach(catalogService.availableModels) { m in
                             Button {
@@ -45,13 +45,13 @@ public struct ModelAndEffortPickerView: View {
                         }
                     } label: {
                         HStack {
-                            Text("模型")
+                            Text("选择模型")
                             Spacer()
                             Text(model.displayName)
                         }
                     }
                     
-                    // 2. 动态推理强度子菜单（完全由当前模型的能力定义）
+                    // 2. 动态推理强度子菜单
                     Menu {
                         ForEach(model.supportedReasoningLevels) { effort in
                             Button {
@@ -73,7 +73,7 @@ public struct ModelAndEffortPickerView: View {
                         }
                     }
                     
-                    // 3. 动态速度子菜单 (仅在当前模型具备调速能力时展示)
+                    // 3. 动态速度子菜单
                     if model.supportsSpeedSelection {
                         Menu {
                             ForEach(SpeedPreference.allCases) { s in
@@ -90,7 +90,7 @@ public struct ModelAndEffortPickerView: View {
                             }
                         } label: {
                             HStack {
-                                Text("速度")
+                                Text("响应速度")
                                 Spacer()
                                 Text(speed.displayName)
                             }
@@ -99,7 +99,6 @@ public struct ModelAndEffortPickerView: View {
                     
                     Divider()
                     
-                    // 4. 重置为默认设置
                     Button {
                         model = catalogService.defaultModel
                         reasoningEffort = .medium
@@ -117,58 +116,58 @@ public struct ModelAndEffortPickerView: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
                     .background(Capsule().fill(Color(nsColor: .controlBackgroundColor)))
                     .overlay(Capsule().stroke(Color.secondary.opacity(0.25), lineWidth: 1))
                 }
                 .menuStyle(.borderlessButton)
             }
             
-            // 当前参数概要卡片
+            // 当前参数概要说明
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("当前模型")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(model.displayName)
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                 }
                 
                 Divider()
-                    .frame(height: 24)
+                    .frame(height: 20)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("推理强度")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(reasoningEffort.displayName)
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                 }
                 
                 if model.supportsSpeedSelection {
                     Divider()
-                        .frame(height: 24)
+                        .frame(height: 20)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("响应速度")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                         Text(speed.displayName)
-                            .font(.subheadline.bold())
+                            .font(.caption.bold())
                     }
                 }
                 
                 Spacer()
             }
-            .padding(10)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(RoundedRectangle(cornerRadius: 6).fill(Color.secondary.opacity(0.05)))
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
         .onAppear {
-            // 校验当前选中的 model 是否仍然在可用列表中，若已下架则自动重定向至最新 defaultModel
             if !catalogService.availableModels.contains(where: { $0.slug == model.slug }) {
                 model = catalogService.defaultModel
             }
