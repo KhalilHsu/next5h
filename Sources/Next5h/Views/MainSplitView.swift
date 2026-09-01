@@ -1,47 +1,14 @@
 import SwiftUI
+import AppKit
 
 public struct MainSplitView: View {
     @ObservedObject private var appState = AppState.shared
-    @ObservedObject private var queueManager = JobQueueManager.shared
-    @ObservedObject private var historyManager = DispatchHistoryManager.shared
-    @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     
     public init() {}
     
     public var body: some View {
         VStack(spacing: 0) {
-            // 1. 现代化悬浮顶栏 (Floating Pill Header)
-            HStack(alignment: .center) {
-                // 左侧：避开 macOS 交通灯三色按钮，展示精致 Logo 与品牌名
-                HStack(spacing: 8) {
-                    Image(systemName: "bolt.badge.clock.fill")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.orange)
-                    
-                    Text("Next5h")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.primary)
-                }
-                .padding(.leading, 76)
-                
-                Spacer()
-                
-                // 中间：悬浮拟态胶囊分段导航 (1:1 绝对映射，零 Bug)
-                FloatingPillTabBar(selectedTab: $appState.selectedTab)
-                
-                Spacer()
-                
-                // 右侧：对称占位，保证中间胶囊绝对居中且顶部不拥挤
-                Color.clear
-                    .frame(width: 140, height: 1)
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 16)
-            .background(Color(nsColor: .windowBackgroundColor))
-            
-            Divider()
-            
-            // 2. 主体工作区
+            // 主体工作区；品牌与导航位于原生 macOS Toolbar
             Group {
                 switch appState.selectedTab {
                 case .queue:
@@ -69,104 +36,124 @@ public struct MainSplitView: View {
     }
 }
 
-/// 现代化悬浮拟态胶囊 Tab 导航组件
-struct FloatingPillTabBar: View {
-    @Binding var selectedTab: NavigationTab
+/// 原生 Toolbar 中央导航：对齐 macOS 官方全圆角选中态与突出视觉规范
+public struct NavigationToolbarView: View {
+    @ObservedObject private var appState = AppState.shared
     @ObservedObject private var queueManager = JobQueueManager.shared
-    @ObservedObject private var historyManager = DispatchHistoryManager.shared
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
-    @Namespace private var pillNamespace
-    
-    var body: some View {
-        HStack(spacing: 3) {
-            // 1. 调度队列
-            pillItem(
-                tab: .queue,
-                icon: "list.bullet.rectangle",
+    @Namespace private var segmentNamespace
+    @State private var hoveredTab: NavigationTab? = nil
+
+    public init() {}
+
+    private var quotaBadgeColor: Color {
+        let quota = quotaEngine.currentQuota
+        if quota.isLocked || quota.remainingPercent < 20 {
+            return .red
+        } else if quota.remainingPercent < 50 {
+            return .orange
+        } else {
+            return .green
+        }
+    }
+
+    public var body: some View {
+        let activeCount = queueManager.jobs.filter { $0.status == .pending || $0.status == .waitingForQuota }.count
+        let remainingPercent = Int(quotaEngine.currentQuota.remainingPercent)
+
+        HStack(spacing: 0) {
+            tabButton(
                 title: "调度队列",
-                badgeText: {
-                    let count = queueManager.jobs.count
-                    return count > 0 ? "\(count)" : nil
-                }(),
-                badgeColor: .secondary
+                badge: activeCount > 0 ? "\(activeCount)" : nil,
+                badgeColor: .blue,
+                tab: .queue
             )
-            
-            // 2. 历史留痕 (移除常驻数字，保持极简)
-            pillItem(
-                tab: .history,
-                icon: "clock.arrow.circlepath",
+
+            divider(between: .queue, and: .history)
+
+            tabButton(
                 title: "历史留痕",
-                badgeText: nil,
-                badgeColor: .secondary
+                badge: nil,
+                badgeColor: .secondary,
+                tab: .history
             )
-            
-            // 3. 额度看板
-            pillItem(
-                tab: .dashboard,
-                icon: "gauge.with.needle",
+
+            divider(between: .history, and: .dashboard)
+
+            tabButton(
                 title: "额度看板",
-                badgeText: "\(Int(quotaEngine.currentQuota.remainingPercent))%",
-                badgeColor: quotaEngine.currentQuota.isLocked ? .red : .green
+                badge: "\(remainingPercent)%",
+                badgeColor: quotaBadgeColor,
+                tab: .dashboard
             )
         }
-        .padding(3)
-        .background(
-            Capsule()
-                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.85))
-                .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
-        )
-        .overlay(
-            Capsule()
-                .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
-        )
+        .padding(.leading, 2.5)
+        .padding(.trailing, 2.5)
+        .padding(.top, 4.0)
+        .padding(.bottom, 1.0)
+        .fixedSize()
     }
-    
+
     @ViewBuilder
-    private func pillItem(
-        tab: NavigationTab,
-        icon: String,
-        title: String,
-        badgeText: String?,
-        badgeColor: Color
-    ) -> some View {
-        let isSelected = selectedTab == tab
-        
-        Button {
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
-                selectedTab = tab
+    private func divider(between tab1: NavigationTab, and tab2: NavigationTab) -> some View {
+        if appState.selectedTab != tab1 && appState.selectedTab != tab2 {
+            Rectangle()
+                .fill(Color(nsColor: .separatorColor).opacity(0.55))
+                .frame(width: 1, height: 11)
+        } else {
+            Spacer().frame(width: 1)
+        }
+    }
+
+    private func tabButton(title: String, badge: String?, badgeColor: Color, tab: NavigationTab) -> some View {
+        let isSelected = appState.selectedTab == tab
+        let isHovered = hoveredTab == tab && !isSelected
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.16)) {
+                appState.selectedTab = tab
             }
         } label: {
             HStack(spacing: 5) {
-                Image(systemName: icon)
-                    .font(.system(size: 11, weight: isSelected ? .bold : .regular))
-                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
-                
                 Text(title)
                     .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
-                
-                if let badge = badgeText {
+                    .foregroundStyle(isSelected ? Color.primary : Color(nsColor: .secondaryLabelColor))
+
+                if let badge = badge {
                     Text(badge)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1)
-                        .background(Capsule().fill(badgeColor.opacity(isSelected ? 0.2 : 0.12)))
+                        .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                        .padding(.horizontal, 5.5)
+                        .padding(.vertical, 1.5)
+                        .background(
+                            Capsule()
+                                .fill(badgeColor.opacity(isSelected ? 0.18 : 0.12))
+                        )
                         .foregroundStyle(badgeColor)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(
-                ZStack {
-                    if isSelected {
-                        Capsule()
-                            .fill(Color(nsColor: .textBackgroundColor))
-                            .shadow(color: Color.black.opacity(0.08), radius: 2, x: 0, y: 1)
-                            .matchedGeometryEffect(id: "ActiveTabIndicator", in: pillNamespace)
-                    }
+            .padding(.horizontal, 9.5)
+            .padding(.vertical, 3.5)
+            .background {
+                if isSelected {
+                    Capsule()
+                        .fill(Color(nsColor: .textBackgroundColor))
+                        .shadow(color: Color.black.opacity(0.12), radius: 1.5, x: 0, y: 0.5)
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                        )
+                        .matchedGeometryEffect(id: "selected_nav_tab", in: segmentNamespace)
+                } else if isHovered {
+                    Capsule()
+                        .fill(Color.primary.opacity(0.04))
                 }
-            )
+            }
         }
         .buttonStyle(.plain)
+        .onHover { h in
+            hoveredTab = h ? tab : nil
+        }
     }
 }
+
+

@@ -41,9 +41,13 @@ public struct HistoryListView: View {
             // 顶部标题与统计栏
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 8) {
-                        Text("🕒 历史发送流水")
-                            .font(.title2.bold())
+                    HStack(spacing: 7) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        Text("历史发送流水")
+                            .font(.title3.bold())
                         
                         if !historyManager.records.isEmpty {
                             Text("累计 \(historyManager.records.count) 次")
@@ -114,7 +118,7 @@ public struct HistoryListView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.28))
             
             Divider()
             
@@ -123,28 +127,17 @@ public struct HistoryListView: View {
                 VStack(spacing: 12) {
                     Spacer()
                     Image(systemName: historyManager.records.isEmpty ? "clock.arrow.circlepath" : "line.3.horizontal.decrease.circle")
-                        .font(.system(size: 38))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 38, weight: .light))
+                        .foregroundStyle(.tertiary)
                     
                     Text(historyManager.records.isEmpty ? "暂无历史发送记录" : "当前筛选条件下无记录")
                         .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.primary)
                     
                     Text(historyManager.records.isEmpty ? "当排定的任务触发或手动发送后，将自动在此处生成执行留痕与耗时统计。" : "您可以切换筛选器查看全部记录。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    
-                    if historyManager.records.isEmpty {
-                        Button {
-                            appState.openNewJobSheet()
-                        } label: {
-                            Label("新建任务", systemImage: "plus")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .padding(.top, 4)
-                    }
                     
                     Spacer()
                 }

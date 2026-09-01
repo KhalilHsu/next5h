@@ -176,10 +176,6 @@ public struct PowerQuickTipBanner: View {
     
     public var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            Image(systemName: "bolt.badge.clock.fill")
-                .font(.subheadline)
-                .foregroundStyle(.orange)
-            
             VStack(alignment: .leading, spacing: 2) {
                 Text("Mac 锁屏与休眠自动唤醒已受保护")
                     .font(.caption.bold())
@@ -204,8 +200,8 @@ public struct PowerQuickTipBanner: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.08)))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.orange.opacity(0.2), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.055)))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.blue.opacity(0.14), lineWidth: 1))
         .sheet(isPresented: $showSheet) {
             PowerGuidelinesSheetView()
         }

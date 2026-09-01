@@ -11,9 +11,13 @@ public struct QueueListView: View {
             // 顶部标题与状态摘要栏
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 8) {
-                        Text("📋 任务调度队列")
-                            .font(.title2.bold())
+                    HStack(spacing: 7) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        Text("任务调度队列")
+                            .font(.title3.bold())
                         
                         if !queueManager.jobs.isEmpty {
                             Text("\(queueManager.jobs.count) 项待执行")
@@ -45,8 +49,6 @@ public struct QueueListView: View {
             .padding(.top, 16)
             .padding(.bottom, 12)
             
-            Divider()
-            
             // 电源与休眠唤醒状态保障提示
             PowerQuickTipBanner()
                 .padding(.horizontal, 20)
@@ -56,16 +58,16 @@ public struct QueueListView: View {
             
             // 列表主体 / 空白引导态
             if queueManager.jobs.isEmpty {
-                VStack(spacing: 14) {
+                VStack(spacing: 12) {
                     Spacer()
                     
                     Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 38, weight: .light))
+                        .foregroundStyle(.tertiary)
                     
                     Text("当前暂无排定的自动化任务")
                         .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.primary)
                     
                     Text("您可以创建早晨定时打卡、5H 额度解封自动发送或延时问询等任务。")
                         .font(.caption)
@@ -75,13 +77,11 @@ public struct QueueListView: View {
                     Button {
                         appState.openNewJobSheet()
                     } label: {
-                        Label("创建第一个自动化任务", systemImage: "plus")
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                        Label("新建任务", systemImage: "plus")
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
-                    .padding(.top, 6)
+                    .padding(.top, 4)
                     
                     Spacer()
                 }

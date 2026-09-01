@@ -3,9 +3,6 @@ import SwiftUI
 public struct QuotaDashboardView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     
-    @State private var customHours: Double = 3.0
-    @State private var showCalibrationModal: Bool = false
-    
     public init() {}
     
     private func formatDateTime(_ date: Date) -> String {
@@ -20,8 +17,13 @@ public struct QuotaDashboardView: View {
                 // 顶部标题与刷新
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("⚡️ 5H 与周额度监控看板")
-                            .font(.title2.bold())
+                        HStack(spacing: 7) {
+                            Image(systemName: "gauge.with.needle")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Text("5H 与周额度监控看板")
+                                .font(.title3.bold())
+                        }
                         Text("直连 OpenAI 官方接口实时探活与滑动窗口用量监测")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -165,41 +167,6 @@ public struct QuotaDashboardView: View {
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                 }
-                
-                // 快速手动校准卡片
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Image(systemName: "wrench.and.screwdriver.fill")
-                            .foregroundStyle(.orange)
-                        Text("快捷额度校准 (如当前在其它设备已被限流)")
-                            .font(.subheadline.bold())
-                    }
-                    
-                    Text("若你在手机或网页端提问被卡住，可一键将倒计时同步至 Next5h：")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    
-                    HStack(spacing: 8) {
-                        Button("+1 小时") {
-                            quotaEngine.calibrateQuota(usedPercent: 100, resetsInSeconds: 3600)
-                        }
-                        Button("+2.5 小时") {
-                            quotaEngine.calibrateQuota(usedPercent: 100, resetsInSeconds: 3600 * 2.5)
-                        }
-                        Button("+4 小时") {
-                            quotaEngine.calibrateQuota(usedPercent: 100, resetsInSeconds: 3600 * 4)
-                        }
-                        Button("清空/恢复可用") {
-                            quotaEngine.calibrateQuota(usedPercent: 0, resetsInSeconds: 0)
-                        }
-                        .foregroundStyle(.green)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-                .padding(14)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                 
                 // 探针运行日志
                 ProbeLogView()
