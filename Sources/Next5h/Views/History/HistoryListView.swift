@@ -37,125 +37,118 @@ public struct HistoryListView: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 顶部标题与统计栏
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 7) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.secondary)
-
-                        Text("历史发送流水")
-                            .font(.title3.bold())
-                        
-                        if !historyManager.records.isEmpty {
-                            Text("累计 \(historyManager.records.count) 次")
-                                .font(.caption.bold())
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Capsule().fill(Color.secondary.opacity(0.12)))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                // 顶部标题与统计栏 (无分割线，严格对齐)
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 7) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(.secondary)
+
+                            Text("历史发送流水")
+                                .font(.title3.bold())
+                            
+                            if !historyManager.records.isEmpty {
+                                Text("累计 \(historyManager.records.count) 次")
+                                    .font(.caption.bold())
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(Color.secondary.opacity(0.12)))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        
+                        Text("自动记录每次 User Query 派发结果、耗时、模型参数与会话目标")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    
+                    Spacer()
+                    
+                    if !historyManager.records.isEmpty {
+                        Button(role: .destructive) {
+                            showClearConfirmation = true
+                        } label: {
+                            Label("清空历史", systemImage: "trash")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
+                    }
+                }
+                .padding(.top, 14)
+                .padding(.bottom, 2)
+                
+                // 统计仪表条与过滤筛选器 (已移除上下所有分割线，与卡片严格左对齐)
+                HStack(alignment: .center) {
+                    // 快捷统计指标
+                    HStack(spacing: 16) {
+                        HStack(spacing: 4) {
+                            Text("今日成功:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("\(historyManager.todaySuccessCount) 次")
+                                .font(.caption.bold())
+                                .foregroundStyle(.green)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Text("整体成功率:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(successRateText)
+                                .font(.caption.bold())
+                                .foregroundStyle(.primary)
                         }
                     }
                     
-                    Text("自动记录每次 User Query 派发结果、耗时、模型参数与会话目标")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                
-                Spacer()
-                
-                if !historyManager.records.isEmpty {
-                    Button(role: .destructive) {
-                        showClearConfirmation = true
-                    } label: {
-                        Label("清空历史", systemImage: "trash")
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.regular)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 12)
-            
-            Divider()
-            
-            // 统计仪表条与过滤筛选器
-            HStack {
-                // 快捷统计指标
-                HStack(spacing: 14) {
-                    HStack(spacing: 4) {
-                        Text("今日成功:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("\(historyManager.todaySuccessCount) 次")
-                            .font(.caption.bold())
-                            .foregroundStyle(.green)
-                    }
+                    Spacer()
                     
-                    HStack(spacing: 4) {
-                        Text("整体成功率:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(successRateText)
-                            .font(.caption.bold())
+                    // 状态筛选器
+                    Picker("", selection: $filterSelection) {
+                        ForEach(HistoryFilter.allCases) { filter in
+                            Text(filter.rawValue).tag(filter)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 170)
+                }
+                .padding(.vertical, 2)
+                
+                // 历史流水列表 (使用 LazyVStack 保证与上方所有文字/指标 100% 像素级对齐)
+                if filteredRecords.isEmpty {
+                    VStack(spacing: 12) {
+                        Spacer().frame(height: 36)
+                        Image(systemName: historyManager.records.isEmpty ? "clock.arrow.circlepath" : "line.3.horizontal.decrease.circle")
+                            .font(.system(size: 38, weight: .light))
+                            .foregroundStyle(.tertiary)
+                        
+                        Text(historyManager.records.isEmpty ? "暂无历史发送记录" : "当前筛选条件下无记录")
+                            .font(.headline)
                             .foregroundStyle(.primary)
+                        
+                        Text(historyManager.records.isEmpty ? "当排定的任务触发或手动发送后，将自动在此处生成执行留痕与耗时统计。" : "您可以切换筛选器查看全部记录。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        
+                        Spacer()
                     }
-                }
-                
-                Spacer()
-                
-                // 状态筛选
-                Picker("", selection: $filterSelection) {
-                    ForEach(HistoryFilter.allCases) { filter in
-                        Text(filter.rawValue).tag(filter)
+                    .frame(maxWidth: .infinity)
+                } else {
+                    LazyVStack(spacing: 12) {
+                        ForEach(filteredRecords) { record in
+                            HistoryRecordRowView(record: record)
+                        }
                     }
+                    .padding(.bottom, 20)
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 170)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.28))
-            
-            Divider()
-            
-            // 历史流水列表
-            if filteredRecords.isEmpty {
-                VStack(spacing: 12) {
-                    Spacer()
-                    Image(systemName: historyManager.records.isEmpty ? "clock.arrow.circlepath" : "line.3.horizontal.decrease.circle")
-                        .font(.system(size: 38, weight: .light))
-                        .foregroundStyle(.tertiary)
-                    
-                    Text(historyManager.records.isEmpty ? "暂无历史发送记录" : "当前筛选条件下无记录")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    Text(historyManager.records.isEmpty ? "当排定的任务触发或手动发送后，将自动在此处生成执行留痕与耗时统计。" : "您可以切换筛选器查看全部记录。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-            } else {
-                List {
-                    ForEach(filteredRecords) { record in
-                        HistoryRecordRowView(record: record)
-                            .padding(.vertical, 4)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
-                    }
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-            }
+            .padding(.horizontal, 24)
         }
+        .scrollContentBackground(.hidden)
         .confirmationDialog(
             "确定要清空所有历史发送记录吗？",
             isPresented: $showClearConfirmation,

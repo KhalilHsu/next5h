@@ -85,7 +85,7 @@ public struct TopHeaderView: View {
     
     public var body: some View {
         ZStack {
-            // 左侧：与下方面板内容严格左对齐（x = 20）放置 Logo 与产品名
+            // 左侧：与下方面板所有内容、卡片完全左对齐（x = 24）
             HStack(spacing: 0) {
                 HStack(spacing: 6) {
                     Image(systemName: "timer")
@@ -96,7 +96,7 @@ public struct TopHeaderView: View {
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.primary)
                 }
-                .padding(.leading, 20)
+                .padding(.leading, 24)
                 
                 Spacer()
             }

@@ -7,99 +7,94 @@ public struct QueueListView: View {
     public init() {}
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 顶部标题与状态摘要栏
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 7) {
-                        Image(systemName: "list.bullet.rectangle")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.secondary)
-
-                        Text("任务调度队列")
-                            .font(.title3.bold())
-                        
-                        if !queueManager.jobs.isEmpty {
-                            Text("\(queueManager.jobs.count) 项待执行")
-                                .font(.caption.bold())
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Capsule().fill(Color.secondary.opacity(0.12)))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                // 顶部标题与状态摘要栏
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 7) {
+                            Image(systemName: "list.bullet.rectangle")
+                                .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(.secondary)
+
+                            Text("任务调度队列")
+                                .font(.title3.bold())
+                            
+                            if !queueManager.jobs.isEmpty {
+                                Text("\(queueManager.jobs.count) 项待执行")
+                                    .font(.caption.bold())
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(Color.secondary.opacity(0.12)))
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        
+                        Text("到点自动唤醒 Mac 并在后台向本地 Codex 客户端派发 User Query")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     
-                    Text("到点自动唤醒 Mac 并在后台向本地 Codex 客户端派发 User Query")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                
-                Spacer()
-                
-                Button {
-                    appState.openNewJobSheet()
-                } label: {
-                    Label("新建任务", systemImage: "plus")
-                        .font(.subheadline.bold())
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 12)
-            
-            // 电源与休眠唤醒状态保障提示
-            PowerQuickTipBanner()
-                .padding(.horizontal, 20)
-                .padding(.vertical, 8)
-            
-            Divider()
-            
-            // 列表主体 / 空白引导态
-            if queueManager.jobs.isEmpty {
-                VStack(spacing: 12) {
                     Spacer()
-                    
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 38, weight: .light))
-                        .foregroundStyle(.tertiary)
-                    
-                    Text("当前暂无排定的自动化任务")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    Text("您可以创建早晨定时打卡、5H 额度解封自动发送或延时问询等任务。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                     
                     Button {
                         appState.openNewJobSheet()
                     } label: {
                         Label("新建任务", systemImage: "plus")
+                            .font(.subheadline.bold())
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
-                    .padding(.top, 4)
-                    
-                    Spacer()
                 }
-                .frame(maxWidth: .infinity)
-            } else {
-                List {
-                    ForEach(queueManager.jobs) { job in
-                        QueueJobCardView(job: job)
-                            .padding(.vertical, 4)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+                .padding(.top, 14)
+                .padding(.bottom, 2)
+                
+                // 电源与休眠唤醒状态保障提示 (无多余分割线，左右严格对齐)
+                PowerQuickTipBanner()
+                
+                // 任务卡片列表 (使用 LazyVStack 保证与顶部各元素 100% 像素级对齐)
+                if queueManager.jobs.isEmpty {
+                    VStack(spacing: 12) {
+                        Spacer().frame(height: 36)
+                        
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 38, weight: .light))
+                            .foregroundStyle(.tertiary)
+                        
+                        Text("当前暂无排定的自动化任务")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        
+                        Text("您可以创建早晨定时打卡、5H 额度解封自动发送或延时问询等任务。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        
+                        Button {
+                            appState.openNewJobSheet()
+                        } label: {
+                            Label("新建任务", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                        .padding(.top, 4)
+                        
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    LazyVStack(spacing: 12) {
+                        ForEach(queueManager.jobs) { job in
+                            QueueJobCardView(job: job)
+                        }
+                    }
+                    .padding(.bottom, 20)
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
             }
+            .padding(.horizontal, 24)
         }
+        .scrollContentBackground(.hidden)
     }
 }
 

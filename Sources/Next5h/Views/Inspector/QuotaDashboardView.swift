@@ -39,9 +39,8 @@ public struct QuotaDashboardView: View {
                     .controlSize(.regular)
                     .disabled(quotaEngine.isProbing)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 4)
+                .padding(.top, 14)
+                .padding(.bottom, 2)
                 
                 // 本地 ChatGPT 客户端连接状态
                 HStack(spacing: 8) {
@@ -62,7 +61,6 @@ public struct QuotaDashboardView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
-                .padding(.horizontal, 20)
                 
                 // 100% 对齐官方“剩余”逻辑的双卡片 (垂直排列以适应 Setting 紧凑宽度)
                 VStack(spacing: 12) {
@@ -171,17 +169,15 @@ public struct QuotaDashboardView: View {
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
                 }
-                .padding(.horizontal, 20)
                 
                 // 探针运行日志
                 ProbeLogView()
-                    .padding(.horizontal, 20)
                 
                 // 系统权限与健康状态
                 PermissionsCardView()
-                    .padding(.horizontal, 20)
                     .padding(.bottom, 20)
             }
+            .padding(.horizontal, 24)
         }
         .scrollContentBackground(.hidden)
     }
