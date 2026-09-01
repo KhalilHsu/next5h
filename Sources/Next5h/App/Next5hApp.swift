@@ -13,9 +13,8 @@ struct Next5hApp: App {
     }
 }
 
-public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSToolbarDelegate {
+public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private static let fixedContentWidth: CGFloat = 820
-    private static let toolbarNavigationIdentifier = NSToolbarItem.Identifier("Next5hToolbarNavigation")
 
     private var statusItem: NSStatusItem?
     private var mainWindow: NSWindow?
@@ -51,25 +50,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         let hostingView = NSHostingView(rootView: contentView)
         
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: Self.fixedContentWidth, height: 640),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            contentRect: NSRect(x: 0, y: 0, width: Self.fixedContentWidth, height: 680),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        let toolbar = NSToolbar(identifier: "Next5hMainToolbar")
-        toolbar.delegate = self
-        toolbar.displayMode = .iconOnly
-        toolbar.allowsUserCustomization = false
-        toolbar.centeredItemIdentifier = Self.toolbarNavigationIdentifier
 
         window.center()
         window.setFrameAutosaveName("Next5hMainWindow")
         window.contentView = hostingView
         window.title = "Next5h"
-        window.titleVisibility = .visible
-        window.titlebarAppearsTransparent = false
-        window.toolbarStyle = .unifiedCompact
-        window.toolbar = toolbar
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
         window.contentMinSize = NSSize(width: Self.fixedContentWidth, height: 540)
         window.contentMaxSize = NSSize(width: Self.fixedContentWidth, height: 10_000)
         window.isReleasedWhenClosed = false
@@ -106,35 +99,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
     /// 固定横向尺寸，只允许用户调整窗口高度。
     public func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
         NSSize(width: sender.frame.width, height: frameSize.height)
-    }
-
-    public func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [Self.toolbarNavigationIdentifier, .flexibleSpace]
-    }
-
-    public func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, Self.toolbarNavigationIdentifier, .flexibleSpace]
-    }
-
-    public func toolbar(
-        _ toolbar: NSToolbar,
-        itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
-        willBeInsertedIntoToolbar flag: Bool
-    ) -> NSToolbarItem? {
-        switch itemIdentifier {
-        case Self.toolbarNavigationIdentifier:
-            let hostingView = NSHostingView(rootView: NavigationToolbarView())
-            hostingView.frame = NSRect(origin: .zero, size: hostingView.fittingSize)
-
-            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-            item.view = hostingView
-            item.label = "导航"
-            item.visibilityPriority = .high
-            return item
-
-        default:
-            return nil
-        }
     }
     
     private func updateStatusItemUI() {
