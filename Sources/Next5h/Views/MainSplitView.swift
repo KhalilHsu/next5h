@@ -8,10 +8,11 @@ public struct MainSplitView: View {
     
     public var body: some View {
         VStack(spacing: 0) {
-            // 顶部 Header 区域（高度加倍至 60pt，视觉空间宽裕，Tab 切换组件同步放大）
+            // 顶部 Header 区域（左侧品牌 + 严格居中的放大的 Tab 切换器）
             TopHeaderView()
             
-            Divider()
+            // 增加 Tab 到下方面板的舒缓呼吸间距
+            Spacer().frame(height: 6)
             
             // 主体工作区
             Group {
@@ -26,7 +27,7 @@ public struct MainSplitView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(minWidth: 740, idealWidth: 880, maxWidth: .infinity, minHeight: 560, idealHeight: 680, maxHeight: .infinity)
+        .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity, minHeight: 520, idealHeight: 640, maxHeight: .infinity)
         .background(
             // 全局快捷键 ⌘N 监听
             Button("") {
@@ -41,7 +42,7 @@ public struct MainSplitView: View {
     }
 }
 
-/// 顶部 Header 栏：高度翻倍（60pt），对齐 macOS 窗口规范并居中承载放大后的 Tab 导航
+/// 顶部 Header 栏：最左侧紧邻交通灯放置应用 Logo & 品牌名，中央严格居中承载放大的 Tab 导航
 public struct TopHeaderView: View {
     @ObservedObject private var appState = AppState.shared
     
@@ -49,12 +50,9 @@ public struct TopHeaderView: View {
     
     public var body: some View {
         ZStack {
-            // 左侧：交通灯安全边距与应用品牌
+            // 左侧：与下方面板内容严格左对齐（x = 20）放置 Logo 与产品名
             HStack(spacing: 0) {
-                Spacer()
-                    .frame(width: 78)
-                
-                HStack(spacing: 7) {
+                HStack(spacing: 6) {
                     Image(systemName: "timer")
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(Color.accentColor)
@@ -63,14 +61,15 @@ public struct TopHeaderView: View {
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.primary)
                 }
+                .padding(.leading, 20)
                 
                 Spacer()
             }
             
-            // 中央：居中放大的 Tab 切换器
+            // 中央：严格居中的 3 个 Tab（位置与样式保持 100% 不变）
             NavigationToolbarView()
         }
-        .frame(height: 60)
+        .frame(height: 56)
         .frame(maxWidth: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
     }
@@ -159,16 +158,16 @@ public struct NavigationToolbarView: View {
                 appState.selectedTab = tab
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Text(title)
-                    .font(.system(size: 13.5, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
                     .foregroundStyle(isSelected ? Color.primary : Color(nsColor: .secondaryLabelColor))
 
                 if let badge = badge {
                     Text(badge)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .padding(.horizontal, 6.5)
-                        .padding(.vertical, 2)
+                        .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 1.5)
                         .background(
                             Capsule()
                                 .fill(badgeColor.opacity(isSelected ? 0.18 : 0.12))
@@ -176,8 +175,8 @@ public struct NavigationToolbarView: View {
                         .foregroundStyle(badgeColor)
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6.5)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .background {
                 if isSelected {
                     Capsule()

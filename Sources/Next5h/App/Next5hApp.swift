@@ -14,7 +14,7 @@ struct Next5hApp: App {
 }
 
 public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
-    private static let fixedContentWidth: CGFloat = 820
+    private static let fixedContentWidth: CGFloat = 720
 
     private var statusItem: NSStatusItem?
     private var mainWindow: NSWindow?
@@ -50,21 +50,21 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         let hostingView = NSHostingView(rootView: contentView)
         
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: Self.fixedContentWidth, height: 680),
+            contentRect: NSRect(x: 0, y: 0, width: Self.fixedContentWidth, height: 640),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
 
-        window.center()
-        window.setFrameAutosaveName("Next5hMainWindow")
         window.contentView = hostingView
         window.title = "Next5h"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
-        window.contentMinSize = NSSize(width: Self.fixedContentWidth, height: 540)
+        window.setContentSize(NSSize(width: Self.fixedContentWidth, height: 640))
+        window.contentMinSize = NSSize(width: Self.fixedContentWidth, height: 500)
         window.contentMaxSize = NSSize(width: Self.fixedContentWidth, height: 10_000)
+        window.center()
         window.isReleasedWhenClosed = false
         window.delegate = self
         
@@ -77,6 +77,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
     public func showMainWindow() {
         if mainWindow == nil {
             setupMainWindow()
+        }
+        if let win = mainWindow {
+            var f = win.frame
+            f.size.width = Self.fixedContentWidth
+            win.setFrame(f, display: true)
         }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)

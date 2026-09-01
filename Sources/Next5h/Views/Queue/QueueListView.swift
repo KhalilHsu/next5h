@@ -10,7 +10,7 @@ public struct QueueListView: View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题与状态摘要栏
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 7) {
                         Image(systemName: "list.bullet.rectangle")
                             .font(.system(size: 17, weight: .semibold))
@@ -29,9 +29,10 @@ public struct QueueListView: View {
                         }
                     }
                     
-                    Text("到点自动唤醒 Mac 并在后台向本地 Codex 客户端派发 User Query，免去守候与频繁手动操作")
+                    Text("到点自动唤醒 Mac 并在后台向本地 Codex 客户端派发 User Query")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 Spacer()
@@ -46,13 +47,13 @@ public struct QueueListView: View {
                 .controlSize(.regular)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 20)
             .padding(.bottom, 12)
             
             // 电源与休眠唤醒状态保障提示
             PowerQuickTipBanner()
                 .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
             
             Divider()
             
@@ -92,7 +93,7 @@ public struct QueueListView: View {
                         QueueJobCardView(job: job)
                             .padding(.vertical, 4)
                             .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
                     }
                 }
                 .listStyle(.plain)

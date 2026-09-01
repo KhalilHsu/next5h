@@ -39,8 +39,8 @@ public struct HistoryListView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题与统计栏
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 7) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 17, weight: .semibold))
@@ -59,9 +59,10 @@ public struct HistoryListView: View {
                         }
                     }
                     
-                    Text("自动记录每次 User Query 的派发结果、耗时、模型参数与会话目标，支持一键复用与回溯")
+                    Text("自动记录每次 User Query 派发结果、耗时、模型参数与会话目标")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 Spacer()
@@ -73,11 +74,11 @@ public struct HistoryListView: View {
                         Label("清空历史", systemImage: "trash")
                     }
                     .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .controlSize(.regular)
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 20)
             .padding(.bottom, 12)
             
             Divider()
@@ -85,7 +86,7 @@ public struct HistoryListView: View {
             // 统计仪表条与过滤筛选器
             HStack {
                 // 快捷统计指标
-                HStack(spacing: 16) {
+                HStack(spacing: 14) {
                     HStack(spacing: 4) {
                         Text("今日成功:")
                             .font(.caption)
@@ -114,7 +115,7 @@ public struct HistoryListView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 180)
+                .frame(width: 170)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
@@ -148,7 +149,7 @@ public struct HistoryListView: View {
                         HistoryRecordRowView(record: record)
                             .padding(.vertical, 4)
                             .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
                     }
                 }
                 .listStyle(.plain)

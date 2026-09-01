@@ -13,10 +13,10 @@ public struct QuotaDashboardView: View {
     
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 // 顶部标题与刷新
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 7) {
                             Image(systemName: "gauge.with.needle")
                                 .font(.system(size: 17, weight: .semibold))
@@ -27,6 +27,7 @@ public struct QuotaDashboardView: View {
                         Text("直连 OpenAI 官方接口实时探活与滑动窗口用量监测")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     
                     Spacer()
@@ -38,7 +39,9 @@ public struct QuotaDashboardView: View {
                     .controlSize(.regular)
                     .disabled(quotaEngine.isProbing)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 4)
                 
                 // 本地 ChatGPT 客户端连接状态
                 HStack(spacing: 8) {
@@ -59,9 +62,10 @@ public struct QuotaDashboardView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+                .padding(.horizontal, 20)
                 
-                // 100% 对齐官方“剩余”逻辑的双卡片
-                HStack(spacing: 14) {
+                // 100% 对齐官方“剩余”逻辑的双卡片 (垂直排列以适应 Setting 紧凑宽度)
+                VStack(spacing: 12) {
                     // 1. 5 小时滑动窗口主卡片
                     let remaining5h = quotaEngine.currentQuota.remainingPercent
                     VStack(alignment: .leading, spacing: 10) {
@@ -167,14 +171,17 @@ public struct QuotaDashboardView: View {
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
                 }
+                .padding(.horizontal, 20)
                 
                 // 探针运行日志
                 ProbeLogView()
+                    .padding(.horizontal, 20)
                 
                 // 系统权限与健康状态
                 PermissionsCardView()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
             }
-            .padding(20)
         }
     }
 }
