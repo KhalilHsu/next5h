@@ -61,6 +61,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = true
         window.setContentSize(NSSize(width: Self.fixedContentWidth, height: 640))
         window.contentMinSize = NSSize(width: Self.fixedContentWidth, height: 500)
         window.contentMaxSize = NSSize(width: Self.fixedContentWidth, height: 10_000)

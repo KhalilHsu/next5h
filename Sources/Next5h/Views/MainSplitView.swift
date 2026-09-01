@@ -29,6 +29,10 @@ public struct MainSplitView: View {
         }
         .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity, minHeight: 520, idealHeight: 640, maxHeight: .infinity)
         .background(
+            VisualEffectView(material: .sidebar, blendingMode: .behindWindow, state: .active)
+                .ignoresSafeArea()
+        )
+        .background(
             // 全局快捷键 ⌘N 监听
             Button("") {
                 appState.openNewJobSheet()
@@ -39,6 +43,37 @@ public struct MainSplitView: View {
         .sheet(isPresented: $appState.isShowingJobSheet) {
             JobEditorSheetView(job: appState.editingJob)
         }
+    }
+}
+
+/// macOS 原生液态毛玻璃视觉效果视图 (NSVisualEffectView 封装)
+public struct VisualEffectView: NSViewRepresentable {
+    public var material: NSVisualEffectView.Material
+    public var blendingMode: NSVisualEffectView.BlendingMode
+    public var state: NSVisualEffectView.State
+
+    public init(
+        material: NSVisualEffectView.Material = .sidebar,
+        blendingMode: NSVisualEffectView.BlendingMode = .behindWindow,
+        state: NSVisualEffectView.State = .active
+    ) {
+        self.material = material
+        self.blendingMode = blendingMode
+        self.state = state
+    }
+
+    public func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = blendingMode
+        view.state = state
+        return view
+    }
+
+    public func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blendingMode
+        nsView.state = state
     }
 }
 
@@ -71,7 +106,6 @@ public struct TopHeaderView: View {
         }
         .frame(height: 56)
         .frame(maxWidth: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 

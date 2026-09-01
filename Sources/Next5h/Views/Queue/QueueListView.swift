@@ -97,6 +97,7 @@ public struct QueueListView: View {
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
     }
@@ -245,8 +246,8 @@ struct QueueJobCardView: View {
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 11).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
+        .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             appState.openEditJobSheet(job: job)

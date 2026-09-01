@@ -115,8 +115,8 @@ public struct QuotaDashboardView: View {
                         }
                     }
                     .padding(14)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
                     
                     // 2. 7 天每周额度窗口卡片
                     let weeklyRem = quotaEngine.currentQuota.weeklyRemainingPercent ?? 100.0
@@ -168,8 +168,8 @@ public struct QuotaDashboardView: View {
                         }
                     }
                     .padding(14)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.8)))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
                 }
                 .padding(.horizontal, 20)
                 
@@ -183,5 +183,6 @@ public struct QuotaDashboardView: View {
                     .padding(.bottom, 20)
             }
         }
+        .scrollContentBackground(.hidden)
     }
 }
