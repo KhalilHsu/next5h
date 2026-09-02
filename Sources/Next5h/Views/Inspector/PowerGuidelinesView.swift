@@ -39,20 +39,20 @@ public struct PowerGuidelinesSheetView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     // 核心总结 Alert
                     HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "info.circle.fill")
+                        Image(systemName: "checkmark.shield.fill")
                             .font(.title3)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.green)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(L10n.tr(
-                                zh: "核心原则：台式机全天候畅通，MacBook 建议开盖插电",
-                                en: "Core Principle: Desktops always ready; MacBooks should be open & plugged in",
-                                ja: "基本原則：デスクトップは常時待機可能、MacBookは開蓋給電を推奨"
+                                zh: "全自动息屏待命保活 (Standby Guard) 已内置生效",
+                                en: "Built-in Automatic Standby Guard is Active",
+                                ja: "自動画面消灯待機ガードが標準有効化されています"
                             ))
                             .font(.headline)
                             Text(L10n.tr(
-                                zh: "Next5h 通过芯片级 RTC 硬件在到点前 60 秒叫醒 Mac，配合底层静默 CLI 发送，无需登录解锁屏幕。",
-                                en: "Next5h uses chip-level RTC hardware to wake Mac 60s early, sending via silent CLI without unlocking screen.",
-                                ja: "Next5h はハードウェアRTCにより60秒前にMacを自動復帰させ、画面ロック解除不要でバックグラウンド送信します。"
+                                zh: "只要队列中有待发任务，Next5h 会自动申请系统级防休眠断言（屏幕正常熄灭/锁屏，但系统内核清醒），07:00 等预定时间毫秒级准时派发，零终端操作，零特权依赖。",
+                                en: "As long as jobs are pending, Next5h automatically keeps the kernel awake (display can sleep/lock). Dispatches right on time with zero terminal steps.",
+                                ja: "未送信ジョブがある場合、Next5hが自動でカーネル稼働を維持（画面は正常に消灯/ロック）。端末操作不要で定刻にミリ秒単位で送信されます。"
                             ))
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -60,8 +60,8 @@ public struct PowerGuidelinesSheetView: View {
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.blue.opacity(0.08)))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.blue.opacity(0.2), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.green.opacity(0.08)))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.green.opacity(0.2), lineWidth: 1))
                     
                     // 场景一：Mac 台式机
                     PowerScenarioCard(
@@ -139,14 +139,27 @@ public struct PowerGuidelinesSheetView: View {
                     
                     // 底层技术原理一览
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.tr(zh: "🛠 底层技术守护机制", en: "🛠 System Guard Mechanisms", ja: "🛠 技術的保護メカニズム"))
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
+                        HStack {
+                            Text(L10n.tr(zh: "🛠 底层技术守护机制", en: "🛠 System Guard Mechanisms", ja: "🛠 技術的保護メカニズム"))
+                                .font(.caption.bold())
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(PowerGuardian.shared.isStandbyAssertionActive ? Color.green : Color.secondary.opacity(0.4))
+                                    .frame(width: 7, height: 7)
+                                Text(PowerGuardian.shared.isStandbyAssertionActive ?
+                                     L10n.tr(zh: "息屏保活断言运行中", en: "Standby Guard Active", ja: "待機ガード稼働中") :
+                                     L10n.tr(zh: "待命断言空闲 (无待发任务)", en: "Standby Idle", ja: "待機ガード停止中"))
+                                    .font(.caption2)
+                                    .foregroundStyle(PowerGuardian.shared.isStandbyAssertionActive ? .green : .secondary)
+                            }
+                        }
                         
                         Text(L10n.tr(
-                            zh: "• IOPMSchedulePowerEvent：直接向主板 RTC 实时时钟注册硬件定时唤醒。\n• IOPMAssertionCreateWithName：派发时申请 PreventUserIdleSystemSleep 电源断言防止中途休眠。\n• NetworkMonitor：自动检测并等待 Wi-Fi/以太网就绪后再发送，杜绝断网报错。",
-                            en: "• IOPMSchedulePowerEvent: Registers hardware wake alarms with RTC clock.\n• IOPMAssertionCreateWithName: Prevents sleep during dispatch with power assertion.\n• NetworkMonitor: Ensures network connectivity before sending to avoid failures.",
-                            ja: "• IOPMSchedulePowerEvent: マザーボードのRTCハードウェアに自動復帰を直接登録。\n• IOPMAssertionCreateWithName: 送信時のPreventUserIdleSystemSleep断言により中断を防止。\n• NetworkMonitor: ネットワーク疎通を確認してから安全に送信。"
+                            zh: "• IOPMAssertionCreateWithName：自动根据队列状态持有 PreventUserIdleSystemSleep 待命断言，屏幕可正常熄灭锁屏，但系统内核保持运转，实现 07:00 毫秒级准时派发。\n• 零终端依赖：普通权限完全原生支持，任务清空时自动释放断言以节省电量。\n• NetworkMonitor：自动检测并等待 Wi-Fi/以太网就绪后再发送，杜绝断网报错。",
+                            en: "• IOPMAssertionCreateWithName: Automatically manages PreventUserIdleSystemSleep standby assertion, keeping kernel active while screen sleeps.\n• Zero Terminal Dependency: Completely native without extra privilege prompts; released when idle.\n• NetworkMonitor: Ensures network connectivity before sending to avoid failures.",
+                            ja: "• IOPMAssertionCreateWithName: 待機ジョブがある間 PreventUserIdleSystemSleep を自動保持し、画面消灯時も定刻に即時送信。\n• 端末操作不要: 特権不要のネイティブ実装。完了時は自動解除し省電力を維持。\n• NetworkMonitor: ネットワーク疎通を確認してから安全に送信。"
                         ))
                         .font(.caption2)
                         .foregroundStyle(.secondary)

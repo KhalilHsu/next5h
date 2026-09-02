@@ -59,6 +59,17 @@ public final class JobQueueManager: ObservableObject {
         if let data = try? JSONEncoder().encode(jobs) {
             try? data.write(to: persistenceURL)
         }
+        syncPowerAssertionState()
+    }
+    
+    /// 自动同步系统待命电源断言状态
+    /// 只要队列中存在待派发的定时任务，自动保持系统息屏运行，杜绝休眠冻结导致无法准时派发
+    public func syncPowerAssertionState() {
+        let hasPending = jobs.contains { job in
+            (job.status == .pending || job.status == .waitingForQuota) &&
+            job.scheduledExecutionDate != nil
+        }
+        PowerGuardian.shared.updateStandbyAssertion(hasPendingJobs: hasPending)
     }
     
     public func addJob(_ job: ScheduledJob) {

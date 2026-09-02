@@ -309,5 +309,17 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(lockedImg.size.height, 22.0)
         XCTAssertTrue(lockedImg.isTemplate)
     }
+    
+    func testStandbyPowerAssertionLifecycle() {
+        let guardian = PowerGuardian.shared
+        
+        // 1. 模拟有待发任务：应当激活待命防休眠断言
+        guardian.updateStandbyAssertion(hasPendingJobs: true)
+        XCTAssertTrue(guardian.isStandbyAssertionActive)
+        
+        // 2. 模拟任务全部完成，队列无待发任务：应当自动释放断言以节省电量
+        guardian.updateStandbyAssertion(hasPendingJobs: false)
+        XCTAssertFalse(guardian.isStandbyAssertionActive)
+    }
 }
 
