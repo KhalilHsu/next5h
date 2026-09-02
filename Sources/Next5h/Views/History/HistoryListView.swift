@@ -122,7 +122,8 @@ public struct HistoryListView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 170)
+                    .labelsHidden()
+                    .fixedSize()
                 }
                 .padding(.vertical, 2)
                 
