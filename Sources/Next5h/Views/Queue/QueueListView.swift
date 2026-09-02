@@ -43,7 +43,6 @@ public struct QueueListView: View {
                         appState.openNewJobSheet()
                     } label: {
                         Label(L10n.queueNewMessage, systemImage: "plus")
-                            .font(.subheadline.bold())
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
