@@ -11,10 +11,9 @@ website/
 ├── index.html          # 官网主页 (语义化 HTML5、暗/亮色自适应、SEO 规范)
 ├── css/
 │   ├── style.css       # 核心样式 (设计令牌、暗/亮色切换、毛玻璃、响应式排版)
-│   └── components.css  # 专用组件 (28pt微胶囊状态栏动效、安装选项卡、矩阵表格、FAQ)
+│   └── components.css  # 专用组件 (安装选项卡、矩阵表格、FAQ手风琴)
 ├── js/
-│   ├── main.js         # 核心交互 (暗亮色切换、一键复制反馈、平滑滚动、移动端抽屉)
-│   └── simulator.js    # 交互式状态栏模拟器 (Plus/Pro 双模式切换、派发模拟)
+│   └── main.js         # 核心交互 (暗亮色切换、一键复制反馈、平滑滚动、移动端抽屉)
 ├── assets/
 │   ├── icon.svg        # Next5h 原生矢量应用图标
 │   └── favicon.svg     # 浏览器 Favicon
