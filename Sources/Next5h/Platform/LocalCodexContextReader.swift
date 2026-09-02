@@ -74,7 +74,8 @@ public final class LocalCodexContextReader {
             
             let (isRunning, pid) = checkRunningChatGPTApp()
             
-            let emailInfo = decoded.email ?? "Plus 用户"
+            let isZh = LocalizationManager.shared.currentLanguage == .zh
+            let emailInfo = decoded.email ?? (isZh ? "Plus 用户" : "Plus User")
             let planInfo = decoded.plan_type?.uppercased() ?? "PLUS"
             
             return QuotaSnapshot(
@@ -86,7 +87,7 @@ public final class LocalCodexContextReader {
                 capturedAt: Date(),
                 isConnectedToChatGPTApp: isRunning,
                 chatGPTPid: pid,
-                statusDescription: "\(emailInfo) (\(planInfo)) · 5H用量 \(Int(primary?.used_percent ?? 0))%"
+                statusDescription: "\(emailInfo) (\(planInfo))"
             )
         } catch {
             print("⚠️ [LocalCodexContextReader] 请求 live quota 失败: \(error)")

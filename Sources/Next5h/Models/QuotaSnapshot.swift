@@ -55,15 +55,18 @@ public struct QuotaSnapshot: Codable, Equatable {
     }
     
     public var formattedRemainingTime: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         let sec = Int(remainingSeconds)
-        if sec <= 0 { return "额度充裕 / 未受限" }
+        if sec <= 0 { return isZh ? "额度充裕 / 未受限" : "Unrestricted" }
         let hours = sec / 3600
         let mins = (sec % 3600) / 60
         let secs = sec % 60
         if hours > 0 {
-            return String(format: "%d小时 %02d分 %02d秒", hours, mins, secs)
+            return isZh ? String(format: "%d小时 %02d分 %02d秒", hours, mins, secs)
+                        : String(format: "%dh %02dm %02ds", hours, mins, secs)
         } else {
-            return String(format: "%d分 %02d秒", mins, secs)
+            return isZh ? String(format: "%d分 %02d秒", mins, secs)
+                        : String(format: "%dm %02ds", mins, secs)
         }
     }
     
@@ -73,17 +76,18 @@ public struct QuotaSnapshot: Codable, Equatable {
     }
     
     public var formattedWeeklyRemainingTime: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         let sec = Int(weeklyRemainingSeconds)
-        if sec <= 0 { return "未受限" }
+        if sec <= 0 { return isZh ? "未受限" : "Unrestricted" }
         let days = sec / 86400
         let hours = (sec % 86400) / 3600
         let mins = (sec % 3600) / 60
         if days > 0 {
-            return "\(days)天 \(hours)小时"
+            return isZh ? "\(days)天 \(hours)小时" : "\(days)d \(hours)h"
         } else if hours > 0 {
-            return "\(hours)小时 \(mins)分"
+            return isZh ? "\(hours)小时 \(mins)分" : "\(hours)h \(mins)m"
         } else {
-            return "\(mins)分钟"
+            return isZh ? "\(mins)分钟" : "\(mins)m"
         }
     }
 }

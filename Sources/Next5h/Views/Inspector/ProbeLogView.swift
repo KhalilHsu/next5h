@@ -21,8 +21,8 @@ public struct ProbeLogView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(quotaEngine.probeLogs, id: \.self) { log in
-                        Text(log)
+                    ForEach(quotaEngine.probeLogEntries) { entry in
+                        Text(entry.formattedMessage(isZh: isZh))
                             .font(.system(.caption2, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)

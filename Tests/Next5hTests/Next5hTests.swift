@@ -69,13 +69,36 @@ final class Next5hTests: XCTestCase {
     }
     
     func testQuotaSnapshotLockedState() {
-        let future = Date().addingTimeInterval(1800)
-        let lockedQuota = QuotaSnapshot(usedPercent: 100, resetsAt: future, windowMinutes: 300)
+        let future = Date().addingTimeInterval(3665) // 1h 1m 5s
+        let lockedQuota = QuotaSnapshot(
+            usedPercent: 100,
+            resetsAt: future,
+            windowMinutes: 300,
+            weeklyUsedPercent: 50,
+            weeklyResetsAt: Date().addingTimeInterval(86400 * 3 + 3600 * 2) // 3d 2h
+        )
         XCTAssertTrue(lockedQuota.isLocked)
         XCTAssertGreaterThan(lockedQuota.remainingSeconds, 0)
         
         let normalQuota = QuotaSnapshot(usedPercent: 40, resetsAt: future, windowMinutes: 300)
         XCTAssertFalse(normalQuota.isLocked)
+        
+        // 验证中英文倒计时与单位
+        LocalizationManager.shared.setLanguage(.zh)
+        XCTAssertTrue(lockedQuota.formattedRemainingTime.contains("小时") && lockedQuota.formattedRemainingTime.contains("分"))
+        XCTAssertTrue(lockedQuota.formattedWeeklyRemainingTime.contains("天") && lockedQuota.formattedWeeklyRemainingTime.contains("小时"))
+        
+        LocalizationManager.shared.setLanguage(.en)
+        XCTAssertTrue(lockedQuota.formattedRemainingTime.contains("h") && lockedQuota.formattedRemainingTime.contains("m"))
+        XCTAssertTrue(lockedQuota.formattedWeeklyRemainingTime.contains("d") && lockedQuota.formattedWeeklyRemainingTime.contains("h"))
+        
+        // 验证 ProbeLogEntry 自适应
+        let entry = ProbeLogEntry(timestamp: Date(), zh: "测试中文日志", en: "Test English log")
+        XCTAssertTrue(entry.formattedMessage(isZh: true).contains("测试中文日志"))
+        XCTAssertTrue(entry.formattedMessage(isZh: false).contains("Test English log"))
+        
+        // 恢复中文
+        LocalizationManager.shared.setLanguage(.zh)
     }
     
     func testDispatchHistoryRecordModel() {
