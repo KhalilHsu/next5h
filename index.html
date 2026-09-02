@@ -48,8 +48,6 @@
 
       <nav>
         <ul class="nav-links" id="nav-links">
-          <li><a href="#core-values" class="nav-link" data-i18n="nav.coreValues">核心价值</a></li>
-          <li><a href="#pipeline" class="nav-link" data-i18n="nav.pipeline">执行链路</a></li>
           <li><a href="#matrix" class="nav-link" data-i18n="nav.matrix">硬件支持矩阵</a></li>
           <li><a href="#install" class="nav-link" data-i18n="nav.install">安装指南</a></li>
           <li><a href="#faq" class="nav-link" data-i18n="nav.faq">常见问题</a></li>
@@ -100,8 +98,8 @@
         <a href="#install" class="btn-primary" style="padding: 12px 28px; font-size: 1rem;" data-i18n="hero.ctaInstall">
           <span>⚡️ 开始安装体验</span>
         </a>
-        <a href="#core-values" class="btn-secondary" style="padding: 12px 24px; font-size: 1rem;" data-i18n="hero.ctaValues">
-          <span>了解 2 大核心玩法 ➔</span>
+        <a href="#faq" class="btn-secondary" style="padding: 12px 24px; font-size: 1rem;" data-i18n="hero.ctaFaq">
+          <span>查看常见问题 ➔</span>
         </a>
       </div>
 
@@ -118,152 +116,6 @@
           </svg>
           <span data-i18n="hero.copyBtn">一键复制</span>
         </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Core Values Showcase Section -->
-  <section class="section core-values-section" id="core-values">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="core.tag">Core Value Pillars</span>
-        <h2 class="section-title" data-i18n="core.title">解决核心痛点：Next5h 的两大核心价值</h2>
-        <p class="section-desc" data-i18n="core.desc">
-          无需人工值守与死等倒计时，通过原生自动化让每一分订阅价值发挥到极致。
-        </p>
-      </div>
-
-      <div class="core-values-grid">
-        <!-- Pillar 1: Queued Dispatch -->
-        <div class="core-value-card card-blue">
-          <div class="core-value-badge badge-pill-blue" data-i18n="pillar1.badge">⚡️ 核心价值 01 · 预定发送</div>
-          <h3 class="core-value-title" data-i18n-html="pillar1.title">当前无额度？提前排队预定<br>解封秒级自动发送</h3>
-          <p class="core-value-summary" data-i18n="pillar1.summary">
-            构思好了 Prompt 却遇到 5H 额度耗尽？无需守在电脑前死等倒计时。在 Next5h 中随时录入 User Query 加入队列，窗口一旦解封，后台立即静默自动派发。
-          </p>
-
-          <ul class="core-value-features">
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🎯</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item1.title">精准指定 Project 与历史 Session</strong>
-                <p data-i18n="pillar1.item1.desc">不仅支持新立独立会话，更可精确发送到指定项目 (Project) 或追加到历史 Session (Thread)，无缝继承工程上下文。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🧠</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item2.title">自由选择模型与 Thinking (推理) 强度</strong>
-                <p data-i18n="pillar1.item2.desc">支持自由指定模型种类（如 o3-mini、o1、GPT-4o），并自定义 Thinking 推理强度等级 (Low / Medium / High Effort)。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🔒</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item3.title">锁屏静默执行，零人工值守</strong>
-                <p data-i18n="pillar1.item3.desc">直接调用本地官方 Codex CLI，无需亮屏与输入锁屏密码，到点即发，绝不浪费 1 秒钟可用额度。</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Pillar 2: Morning Scheduled Wakeup -->
-        <div class="core-value-card card-amber">
-          <div class="core-value-badge badge-pill-amber" data-i18n="pillar2.badge">⏰ 核心价值 02 · 清晨定时激活</div>
-          <h3 class="core-value-title" data-i18n-html="pillar2.title">清晨定时发送“激活对话”<br>白天稳稳吃满 3 个窗口</h3>
-          <p class="core-value-summary" data-i18n="pillar2.summary">
-            普通用户中午才开工，一天只能消耗 1~2 个 5 小时周期。Next5h 在清晨 07:00 通过硬件 RTC 唤醒 Mac 并发送一条激活消息，提前触发首个滑动窗口计时，全天算力直接翻倍！
-          </p>
-
-          <!-- 3-Window Maximization Timeline Widget -->
-          <div class="window-timeline">
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot1.time">07:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot1.label">⚡️ 自动激活 (窗口 1)</span>
-            </div>
-            <div class="timeline-arrow">➔</div>
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot2.time">12:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot2.label">🔄 满血重置 (窗口 2)</span>
-            </div>
-            <div class="timeline-arrow">➔</div>
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot3.time">17:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot3.label">🚀 再次重置 (窗口 3)</span>
-            </div>
-          </div>
-
-          <ul class="core-value-features" style="margin-top: 16px;">
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🌅</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item1.title">macOS 硬件级 RTC 芯片唤醒</strong>
-                <p data-i18n-html="pillar2.item1.desc">到点前 60s 调用内核 <code>IOPMSchedulePowerEvent</code> 叫醒电脑并恢复 Wi-Fi，早上到工位时第 1 轮额度早已就绪。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">📈</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item2.title">全天黄金工作时间无缝覆盖</strong>
-                <p data-i18n="pillar2.item2.desc">3 个完整 5 小时窗口完美覆盖 07:00~22:00，告别下午才开启第 1 个窗口的巨大浪费，榨干每一分算力。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">☕️</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item3.title">一键开启，每天自动循环</strong>
-                <p data-i18n="pillar2.item3.desc">预置每天 07:00 执行规则，支持自定义激活 Prompt 与目标会话，静默运行无需每天重复设置。</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Technical Pipeline / Workflow Section -->
-  <section class="section workflow-section" id="pipeline">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="pipe.tag">Zero Hassle Pipeline</span>
-        <h2 class="section-title" data-i18n="pipe.title">全链路自动化：从硬件唤醒到无感刷新</h2>
-        <p class="section-desc" data-i18n="pipe.desc">
-          Next5h 深度整合 macOS 底层电源管理接口与官方 Codex CLI，让任务派发在深睡与锁屏状态下也能完美完成。
-        </p>
-      </div>
-
-      <div class="workflow-steps">
-        <div class="step-card">
-          <div class="step-number">01</div>
-          <h3 class="step-title" data-i18n="pipe.s1.title">硬件 RTC 芯片定时唤醒</h3>
-          <p class="step-desc" data-i18n-html="pipe.s1.desc">
-            调用 macOS <code class="tech-tag">IOPMSchedulePowerEvent</code> 内核接口，在任务到点前 60s 硬件叫醒 Mac，并申请电源守护阻止深睡断网。
-          </p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">02</div>
-          <h3 class="step-title" data-i18n="pipe.s2.title">Wi-Fi 网络自愈与模型探针</h3>
-          <p class="step-desc" data-i18n-html="pipe.s2.desc">
-            唤醒后，内置 <code class="tech-tag">NetworkMonitor</code> 追踪网络握手，并实时读取官方模型缓存与 5H 额度重置倒计时。
-          </p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">03</div>
-          <h3 class="step-title" data-i18n="pipe.s3.title">本地 Codex CLI 静默派发</h3>
-          <p class="step-desc" data-i18n-html="pipe.s3.desc">
-            直调官方 <code class="tech-tag">ChatGPT.app/.../codex</code> CLI，精准派发至指定 Project 或历史 Session，支持选模型与 Thinking 强度，锁屏免密执行。
-          </p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">04</div>
-          <h3 class="step-title" data-i18n="pipe.s4.title">codex:// 免重启即时呈现</h3>
-          <p class="step-desc" data-i18n-html="pipe.s4.desc">
-            同步更新本地 session 会话索引与 SQLite 缓存，通过 <code class="tech-tag">codex://threads/&lt;ID&gt;</code> 深度协议让运行中的桌面端无感刷新。
-          </p>
-        </div>
       </div>
     </div>
   </section>
@@ -512,10 +364,9 @@ open Next5h.app</code></pre>
           <div class="footer-col">
             <h4 data-i18n="footer.product">产品</h4>
             <ul>
-              <li><a href="#core-values" data-i18n="nav.coreValues">核心价值</a></li>
-              <li><a href="#pipeline" data-i18n="nav.pipeline">执行链路</a></li>
               <li><a href="#matrix" data-i18n="nav.matrix">硬件支持矩阵</a></li>
               <li><a href="#install" data-i18n="nav.install">安装指南</a></li>
+              <li><a href="#faq" data-i18n="nav.faq">常见问题</a></li>
             </ul>
           </div>
 

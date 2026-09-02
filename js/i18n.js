@@ -25,6 +25,7 @@ const translations = {
     "hero.subtitle": "<strong>① 没额度？随时预定</strong>：排队 User Query，解封秒级自动发送至指定 Project / 历史 Session，支持选模型与 Thinking 强度。<br><strong>② 想要算力翻倍？清晨定时</strong>：早晨 07:00 硬件唤醒 Mac 自动发“激活”对话，白天稳稳吃满 3 个完整的 5 小时额度窗口。",
     "hero.ctaInstall": "⚡️ 开始安装体验",
     "hero.ctaValues": "了解 2 大核心玩法 ➔",
+    "hero.ctaFaq": "查看常见问题 ➔",
     "hero.copyBtn": "一键复制",
     "hero.copied": "已复制",
     
@@ -177,6 +178,7 @@ const translations = {
     "hero.subtitle": "<strong>① Out of Quota? Queue Anytime</strong>: Stage your User Query into queue. Dispatches the exact second your window resets to specified Projects/Sessions with custom Models and Thinking effort.<br><strong>② Double Your Compute? Morning Schedule</strong>: Automatically hardware-wakes your Mac at 07:00 AM to send an activation ping, unlocking a full 3 five-hour windows throughout your workday.",
     "hero.ctaInstall": "⚡️ Install & Get Started",
     "hero.ctaValues": "Explore 2 Core Pillars ➔",
+    "hero.ctaFaq": "View FAQ ➔",
     "hero.copyBtn": "Copy Command",
     "hero.copied": "Copied",
 
