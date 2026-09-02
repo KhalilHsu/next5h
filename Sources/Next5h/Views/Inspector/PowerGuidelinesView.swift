@@ -260,10 +260,9 @@ public struct PowerQuickTipBanner: View {
             .buttonStyle(.bordered)
             .controlSize(.mini)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.055)))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.blue.opacity(0.14), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
         .sheet(isPresented: $showSheet) {
             PowerGuidelinesSheetView()
         }
