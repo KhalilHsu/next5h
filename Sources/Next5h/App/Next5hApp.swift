@@ -21,6 +21,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
     private var cancellables = Set<AnyCancellable>()
     
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        setupAppIcon()
         NotificationService.shared.requestAuthorization()
         
         // 1. 初始化顶部状态栏 Item
@@ -46,6 +47,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
             .store(in: &cancellables)
         
         print("🚀 Next5h 已启动，支持状态栏双圆柱监控与常驻后台运行")
+    }
+    
+    private func setupAppIcon() {
+        if let iconPath = Bundle.main.path(forResource: "AppIcon", ofType: "icns") ?? Bundle.main.path(forResource: "AppIcon", ofType: "png"),
+           let image = NSImage(contentsOfFile: iconPath) {
+            NSApplication.shared.applicationIconImage = image
+        }
     }
     
     private func setupStatusItem() {

@@ -17,6 +17,10 @@ mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 cp ".build/release/${APP_NAME}" "${MACOS_DIR}/${APP_NAME}"
 chmod +x "${MACOS_DIR}/${APP_NAME}"
 
+if [ -f "assets/AppIcon.icns" ]; then
+    cp "assets/AppIcon.icns" "${RESOURCES_DIR}/AppIcon.icns"
+fi
+
 cat << 'PLIST' > "${CONTENTS_DIR}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -30,6 +34,8 @@ cat << 'PLIST' > "${CONTENTS_DIR}/Info.plist"
     <string>Next5h</string>
     <key>CFBundleDisplayName</key>
     <string>Next5h</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -47,3 +53,12 @@ cat << 'PLIST' > "${CONTENTS_DIR}/Info.plist"
 PLIST
 
 echo "✅ 打包完成: ${BUNDLE_DIR}"
+
+if [ -d "/Applications/${APP_NAME}.app" ]; then
+    echo "🔄 正在同步更新 /Applications/${APP_NAME}.app..."
+    rm -rf "/Applications/${APP_NAME}.app"
+    cp -R "${BUNDLE_DIR}" "/Applications/${APP_NAME}.app"
+    touch "/Applications/${APP_NAME}.app"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "/Applications/${APP_NAME}.app" 2>/dev/null || true
+    echo "✨ /Applications/${APP_NAME}.app 同步完成并已刷新图标缓存"
+fi
