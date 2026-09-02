@@ -218,6 +218,13 @@ body {
   border-color: var(--border-medium);
 }
 
+.lang-toggle-btn {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
