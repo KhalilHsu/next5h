@@ -174,25 +174,6 @@ body {
   color: var(--accent-primary);
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  list-style: none;
-}
-
-.nav-link {
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.nav-link:hover {
-  color: var(--text-primary);
-}
-
 .nav-actions {
   display: flex;
   align-items: center;
@@ -267,10 +248,6 @@ body {
 .btn-secondary:hover {
   background: var(--bg-surface-hover);
   border-color: var(--border-medium);
-}
-
-.mobile-menu-btn {
-  display: none;
 }
 
 /* Hero Section */
@@ -581,28 +558,6 @@ body {
 }
 
 /* Responsive Media Queries */
-@media (max-width: 900px) {
-  .nav-links {
-    display: none;
-  }
-  .mobile-menu-btn {
-    display: inline-flex;
-  }
-  .nav-links.active {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: var(--bg-surface-elevated);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 24px;
-    gap: 18px;
-    box-shadow: var(--shadow-card);
-  }
-}
-
 @media (max-width: 640px) {
   .hero-install-box {
     flex-direction: column;
@@ -613,5 +568,22 @@ body {
   }
   .footer-links-group {
     gap: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-actions {
+    gap: 8px;
+  }
+  .btn-primary {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  .btn-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .brand-badge {
+    display: none;
   }
 }

@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopyButtons();
   initInstallTabs();
   initFaqAccordion();
-  initMobileMenu();
   initSmoothScroll();
 });
 
@@ -183,27 +182,7 @@ function initFaqAccordion() {
 }
 
 /* --------------------------------------------------------------------------
-   5. Mobile Menu Toggle
-   -------------------------------------------------------------------------- */
-function initMobileMenu() {
-  const menuBtn = document.getElementById('mobile-menu-btn');
-  const navLinks = document.getElementById('nav-links');
-  if (!menuBtn || !navLinks) return;
-
-  menuBtn.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-  });
-
-  // Close menu when clicking any nav link
-  navLinks.querySelectorAll('.nav-link').forEach((link) => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('active');
-    });
-  });
-}
-
-/* --------------------------------------------------------------------------
-   6. Smooth Anchor Scrolling & Clean URL Hash Handling
+   5. Smooth Anchor Scrolling & Clean URL Hash Handling
    -------------------------------------------------------------------------- */
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
