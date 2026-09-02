@@ -320,9 +320,17 @@ function getPreferredLanguage() {
   if (saved && (saved === 'zh' || saved === 'en')) {
     return saved;
   }
-  const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-  if (browserLang.startsWith('zh')) {
-    return 'zh';
+  // Check browser/system language preferences
+  const languages = navigator.languages || [navigator.language || navigator.userLanguage || ''];
+  for (let i = 0; i < languages.length; i++) {
+    const l = (languages[i] || '').toLowerCase();
+    if (l.startsWith('zh')) {
+      return 'zh';
+    }
+    // If the primary preference is English or any non-Chinese language
+    if (i === 0 && !l.startsWith('zh')) {
+      return 'en';
+    }
   }
   return 'en';
 }
