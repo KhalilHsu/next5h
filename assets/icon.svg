@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1e24"/>
+      <stop offset="50%" stop-color="#14151a"/>
+      <stop offset="100%" stop-color="#0b0c10"/>
+    </linearGradient>
+
+    <!-- Outer Squircle Border Glow -->
+    <linearGradient id="borderGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <!-- Ring Gradient (5H Rolling Window Arc) -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+
+    <!-- Lightning / Thunderbolt Gradient -->
+    <linearGradient id="boltGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for macOS Squircle -->
+    <filter id="appShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#3b82f6" flood-opacity="0.2"/>
+    </filter>
+
+    <!-- Inner Glow -->
+    <radialGradient id="innerLight" cx="50%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- macOS App Squircle Container -->
+  <g filter="url(#appShadow)">
+    <rect x="32" y="32" width="448" height="448" rx="100" ry="100" fill="url(#bgGrad)"/>
+    <rect x="32" y="32" width="448" height="448" rx="100" ry="100" fill="url(#innerLight)"/>
+    <rect x="33" y="33" width="446" height="446" rx="99" ry="99" fill="none" stroke="url(#borderGlow)" stroke-width="3" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- 5H Circular Progress Ring (Hour Gauge) -->
+  <g transform="translate(256, 256)">
+    <!-- Subtle Background Track -->
+    <circle cx="0" cy="0" r="148" fill="none" stroke="#262a36" stroke-width="14" stroke-linecap="round"/>
+
+    <!-- Dynamic Glowing Progress Arc (Representing 5-Hour Cycle) -->
+    <circle cx="0" cy="0" r="148" fill="none" stroke="url(#ringGrad)" stroke-width="14"
+            stroke-linecap="round" stroke-dasharray="697 930" stroke-dashoffset="0"
+            transform="rotate(-90)"/>
+
+    <!-- 5 Hour Tick Markers -->
+    <circle cx="0" cy="-148" r="5" fill="#60a5fa"/>
+    <circle cx="140" cy="-45" r="4" fill="#818cf8"/>
+    <circle cx="87" cy="120" r="4" fill="#a78bfa"/>
+    <circle cx="-87" cy="120" r="4" fill="#2dd4bf"/>
+    <circle cx="-140" cy="-45" r="4" fill="#38bdf8"/>
+
+    <!-- Center Lightning / Codex Bolt -->
+    <path d="M 12 -96 L -52 14 L -4 14 L -20 96 L 56 -18 L 4 -18 Z"
+          fill="url(#boltGrad)"
+          stroke="#0b0c10"
+          stroke-width="4"
+          stroke-linejoin="round"/>
+
+    <!-- Small Digital Pill: '5H' Badge -->
+    <g transform="translate(0, 104)">
+      <rect x="-36" y="-14" width="72" height="28" rx="8" fill="#1e2433" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="0" y="5" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif"
+            font-size="14" font-weight="800" fill="#60a5fa" text-anchor="middle" letter-spacing="1">NEXT5H</text>
+    </g>
+  </g>
+</svg>
