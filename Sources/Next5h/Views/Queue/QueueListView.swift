@@ -3,6 +3,7 @@ import SwiftUI
 public struct QueueListView: View {
     @ObservedObject private var queueManager = JobQueueManager.shared
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     
     public init() {}
     
@@ -17,11 +18,11 @@ public struct QueueListView: View {
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
-                            Text("任务调度队列")
+                            Text(L10n.queueTitle)
                                 .font(.title3.bold())
                             
                             if !queueManager.jobs.isEmpty {
-                                Text("\(queueManager.jobs.count) 项待执行")
+                                Text(L10n.queuePendingCount(queueManager.jobs.count))
                                     .font(.caption.bold())
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
@@ -30,7 +31,7 @@ public struct QueueListView: View {
                             }
                         }
                         
-                        Text("到点自动唤醒 Mac 并在后台向本地 Codex 客户端派发 User Query")
+                        Text(L10n.queueSubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -41,7 +42,7 @@ public struct QueueListView: View {
                     Button {
                         appState.openNewJobSheet()
                     } label: {
-                        Label("新建任务", systemImage: "plus")
+                        Label(L10n.queueNewMessage, systemImage: "plus")
                             .font(.subheadline.bold())
                     }
                     .buttonStyle(.borderedProminent)
@@ -62,11 +63,11 @@ public struct QueueListView: View {
                             .font(.system(size: 38, weight: .light))
                             .foregroundStyle(.tertiary)
                         
-                        Text("当前暂无排定的自动化任务")
+                        Text(L10n.queueEmptyTitle)
                             .font(.headline)
                             .foregroundStyle(.primary)
                         
-                        Text("您可以创建早晨定时打卡、5H 额度解封自动发送或延时问询等任务。")
+                        Text(L10n.queueEmptySubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -74,7 +75,7 @@ public struct QueueListView: View {
                         Button {
                             appState.openNewJobSheet()
                         } label: {
-                            Label("新建任务", systemImage: "plus")
+                            Label(L10n.queueNewMessage, systemImage: "plus")
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.regular)
@@ -102,14 +103,17 @@ struct QueueJobCardView: View {
     let job: ScheduledJob
     @ObservedObject private var queueManager = JobQueueManager.shared
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     private func formatDateTime(_ date: Date) -> String {
         let calendar = Calendar.current
         let formatter = DateFormatter()
         if calendar.isDateInToday(date) {
-            formatter.dateFormat = "今天 HH:mm:ss"
+            formatter.dateFormat = "\(L10n.dateToday) HH:mm:ss"
         } else if calendar.isDateInTomorrow(date) {
-            formatter.dateFormat = "明天 HH:mm:ss"
+            formatter.dateFormat = "\(L10n.dateTomorrow) HH:mm:ss"
         } else {
             formatter.dateFormat = "MM-dd HH:mm"
         }
@@ -166,7 +170,7 @@ struct QueueJobCardView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary.opacity(0.5))
                 
-                Label(job.dispatchMode == .silentAPI ? "静默 CLI" : "前台 GUI", systemImage: "paperplane")
+                Label(job.dispatchMode == .silentAPI ? (isZh ? "静默 CLI" : "Silent CLI") : (isZh ? "前台 GUI" : "Foreground GUI"), systemImage: "paperplane")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 
@@ -177,11 +181,12 @@ struct QueueJobCardView: View {
                         if case .dailyAtTime(let h, let m) = job.strategy {
                             Image(systemName: "repeat")
                                 .font(.system(size: 9))
-                            Text("每天 \(String(format: "%02d:%02d", h, m)) · 下次: \(formatDateTime(sched))")
+                            Text(isZh ? "每天 \(String(format: "%02d:%02d", h, m)) · 下次: \(formatDateTime(sched))"
+                                      : "Daily \(String(format: "%02d:%02d", h, m)) · Next: \(formatDateTime(sched))")
                         } else {
                             Image(systemName: "clock")
                                 .font(.system(size: 9))
-                            Text("预定: \(formatDateTime(sched))")
+                            Text(isZh ? "预定: \(formatDateTime(sched))" : "Scheduled: \(formatDateTime(sched))")
                         }
                     }
                     .font(.caption2.bold())
@@ -199,7 +204,7 @@ struct QueueJobCardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "play.circle.fill")
-                        Text("立即发送")
+                        Text(L10n.actionSendNow)
                     }
                     .font(.caption.bold())
                 }
@@ -210,7 +215,7 @@ struct QueueJobCardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil")
-                        Text("编辑")
+                        Text(L10n.actionEdit)
                     }
                     .font(.caption)
                 }
@@ -221,7 +226,7 @@ struct QueueJobCardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: job.status == .paused ? "arrow.clockwise" : "pause.circle")
-                        Text(job.status == .paused ? "恢复排程" : "暂停")
+                        Text(job.status == .paused ? (isZh ? "恢复排程" : "Resume") : (isZh ? "暂停" : "Pause"))
                     }
                     .font(.caption)
                     .foregroundStyle(job.status == .paused ? .green : .secondary)
@@ -251,19 +256,19 @@ struct QueueJobCardView: View {
             Button {
                 queueManager.executeJob(jobId: job.id)
             } label: {
-                Label("立即发送", systemImage: "play.fill")
+                Label(L10n.actionSendNow, systemImage: "play.fill")
             }
             
             Button {
                 appState.openEditJobSheet(job: job)
             } label: {
-                Label("编辑任务...", systemImage: "pencil")
+                Label(isZh ? "编辑任务..." : "Edit Task...", systemImage: "pencil")
             }
             
             Button {
                 queueManager.togglePause(id: job.id)
             } label: {
-                Label(job.status == .paused ? "恢复排程" : "暂停", systemImage: job.status == .paused ? "play.fill" : "pause.fill")
+                Label(job.status == .paused ? (isZh ? "恢复排程" : "Resume") : (isZh ? "暂停" : "Pause"), systemImage: job.status == .paused ? "play.fill" : "pause.fill")
             }
             
             Divider()
@@ -271,7 +276,7 @@ struct QueueJobCardView: View {
             Button(role: .destructive) {
                 queueManager.deleteJob(id: job.id)
             } label: {
-                Label("删除任务", systemImage: "trash")
+                Label(isZh ? "删除任务" : "Delete Task", systemImage: "trash")
             }
         }
     }

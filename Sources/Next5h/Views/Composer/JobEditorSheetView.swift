@@ -4,7 +4,10 @@ public struct JobEditorSheetView: View {
     @ObservedObject private var queueManager = JobQueueManager.shared
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var catalogService = ModelCatalogService.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     private let editingJob: ScheduledJob?
     
@@ -38,11 +41,11 @@ public struct JobEditorSheetView: View {
                             .font(.title3)
                             .foregroundStyle(isExistingJob ? Color.orange : Color.accentColor)
                         
-                        Text(isExistingJob ? "编辑任务" : "新建调度任务")
+                        Text(isExistingJob ? L10n.editorEditTitle : L10n.editorNewTitle)
                             .font(.title3.bold())
                     }
                     
-                    Text(isExistingJob ? "修改已排定任务的参数与 User Query 内容" : "配置到点自动派发至本地 Codex 客户端的 User Query")
+                    Text(isExistingJob ? L10n.editorEditSubtitle : L10n.editorNewSubtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -71,23 +74,23 @@ public struct JobEditorSheetView: View {
                     // 若是新建模式，提供快捷场景模板 Pill
                     if !isExistingJob {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("⚡️ 快捷模板填入 (可选)")
+                            Text(L10n.editorTemplatesTitle)
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
                             
                             HStack(spacing: 8) {
                                 templateButton(
-                                    title: "🌅 每日早晨打卡",
+                                    title: L10n.templateDailyMorning,
                                     index: 0,
                                     preset: ScheduledJob.makeDefaultPreset()
                                 )
                                 
                                 templateButton(
-                                    title: "⚡️ 5H 解封自动发",
+                                    title: L10n.templateQuotaReset,
                                     index: 1,
                                     preset: ScheduledJob(
-                                        title: "⚡️ 5H 解封自动发送",
-                                        prompt: "请帮我检查并 Review 当前项目的最新提交和变更分支",
+                                        title: isZh ? "⚡️ 5H 解封自动发送" : "⚡️ Auto-send on 5H Reset",
+                                        prompt: isZh ? "请帮我检查并 Review 当前项目的最新提交和变更分支" : "Please review the latest commits and changes in the current project",
                                         model: catalogService.defaultModel,
                                         reasoningEffort: .medium,
                                         speed: .standard,
@@ -98,11 +101,11 @@ public struct JobEditorSheetView: View {
                                 )
                                 
                                 templateButton(
-                                    title: "☕️ 延时 3 小时提醒",
+                                    title: isZh ? "☕️ 延时 3 小时提醒" : "☕️ 3h Delayed Summary",
                                     index: 2,
                                     preset: ScheduledJob(
-                                        title: "☕️ 3 小时后自动总结",
-                                        prompt: "总结今天的编码进展与待办事项",
+                                        title: isZh ? "☕️ 3 小时后自动总结" : "☕️ Auto-summary in 3 Hours",
+                                        prompt: isZh ? "总结今天的编码进展与待办事项" : "Summarize today's coding progress and todo list",
                                         model: catalogService.defaultModel,
                                         reasoningEffort: .low,
                                         speed: .standard,
@@ -118,21 +121,21 @@ public struct JobEditorSheetView: View {
                     
                     // 任务名称
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("任务名称")
+                        Text(L10n.editorMessageTitleField)
                             .font(.caption.bold())
                             .foregroundStyle(.secondary)
-                        TextField("例如: 每日 07:00 初始问候 / 重构核心调度模块", text: $title)
+                        TextField(L10n.editorMessageTitlePlaceholder, text: $title)
                             .textFieldStyle(.roundedBorder)
                     }
                     
                     // User Query (Prompt) 输入区
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("User Query (Prompt 内容)")
+                            Text(L10n.editorPromptField)
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
                             Spacer()
-                            Text("\(prompt.count) 字符")
+                            Text("\(prompt.count) " + (isZh ? "字符" : "chars"))
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -164,13 +167,13 @@ public struct JobEditorSheetView: View {
             
             // 3. 底部操作栏
             HStack {
-                Text("提示: 按 Esc 取消，按 ⌘Return 保存")
+                Text(isZh ? "提示: 按 Esc 取消，按 ⌘Return 保存" : "Tip: Press Esc to cancel, ⌘Return to save")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 
                 Spacer()
                 
-                Button("取消") {
+                Button(L10n.cancel) {
                     closeSheet()
                 }
                 .buttonStyle(.bordered)
@@ -182,7 +185,7 @@ public struct JobEditorSheetView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: isExistingJob ? "checkmark.circle.fill" : "paperplane.fill")
-                        Text(isExistingJob ? "保存任务修改" : "加入调度队列")
+                        Text(isExistingJob ? (isZh ? "保存修改" : "Save Changes") : (isZh ? "加入待发列表" : "Add to Pending"))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -248,7 +251,7 @@ public struct JobEditorSheetView: View {
     
     private func saveJob() {
         let safeModel = catalogService.resolveModel(slugOrName: model.slug)
-        let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "自动化任务" : title
+        let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (isZh ? "待发消息" : "Scheduled Message") : title
         
         if let existing = editingJob {
             let updated = ScheduledJob(

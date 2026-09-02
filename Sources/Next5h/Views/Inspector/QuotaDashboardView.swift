@@ -2,6 +2,9 @@ import SwiftUI
 
 public struct QuotaDashboardView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     public init() {}
     
@@ -21,10 +24,10 @@ public struct QuotaDashboardView: View {
                             Image(systemName: "gauge.with.needle")
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(.secondary)
-                            Text("5H 与周额度监控看板")
+                            Text(L10n.dashboardTitle)
                                 .font(.title3.bold())
                         }
-                        Text("直连 OpenAI 官方接口实时探活与滑动窗口用量监测")
+                        Text(L10n.dashboardSubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -33,7 +36,7 @@ public struct QuotaDashboardView: View {
                     Spacer()
                     
                     Button(action: { quotaEngine.refreshNow() }) {
-                        Label(quotaEngine.isProbing ? "同步中..." : "立即刷新", systemImage: "arrow.clockwise")
+                        Label(quotaEngine.isProbing ? L10n.dashboardSyncing : L10n.dashboardRefresh, systemImage: "arrow.clockwise")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.regular)
@@ -48,11 +51,11 @@ public struct QuotaDashboardView: View {
                         .fill(quotaEngine.currentQuota.isConnectedToChatGPTApp ? Color.green : Color.gray)
                         .frame(width: 8, height: 8)
                     if quotaEngine.currentQuota.isConnectedToChatGPTApp {
-                        Text("已连接本地 ChatGPT 客户端 (PID: \(quotaEngine.currentQuota.chatGPTPid ?? 0))")
+                        Text(L10n.dashboardConnectedChatGPT(pid: quotaEngine.currentQuota.chatGPTPid ?? 0))
                             .font(.caption.bold())
                             .foregroundStyle(.green)
                     } else {
-                        Text("本地 ChatGPT.app 未运行 (无影响，Next5h 通过底层 Token 独立监控与派发)")
+                        Text(L10n.dashboardChatGPTNotRunning)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -69,14 +72,14 @@ public struct QuotaDashboardView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("5 小时滑动周期窗口 (300m)")
+                                Text(L10n.dashboard5hCardTitle)
                                     .font(.headline)
-                                Text("当前剩余 \(String(format: "%.1f", remaining5h))% · 已用 \(String(format: "%.1f", quotaEngine.currentQuota.usedPercent))%")
+                                Text(L10n.dashboard5hUsage(remaining: remaining5h, used: quotaEngine.currentQuota.usedPercent))
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text("剩余 \(String(format: "%.1f", remaining5h))%")
+                            Text(L10n.dashboardRemaining(percent: remaining5h))
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
                                 .foregroundStyle(quotaEngine.currentQuota.isLocked ? .red : .primary)
                         }
@@ -90,20 +93,20 @@ public struct QuotaDashboardView: View {
                         
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("解锁时间 (Resets At)")
+                                Text(L10n.dashboardResetsAt)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 if let resetsAt = quotaEngine.currentQuota.resetsAt {
                                     Text(formatDateTime(resetsAt))
                                         .font(.caption.bold())
                                 } else {
-                                    Text("未受限")
+                                    Text(L10n.menuUnrestricted)
                                         .font(.caption)
                                 }
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
-                                Text("剩余倒计时")
+                                Text(L10n.dashboardCountdown)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Text(quotaEngine.currentQuota.formattedRemainingTime)
@@ -122,14 +125,14 @@ public struct QuotaDashboardView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("7 天每周额度窗口 (7 Days)")
+                                Text(L10n.dashboardWeeklyCardTitle)
                                     .font(.headline)
-                                Text("当前剩余 \(String(format: "%.1f", weeklyRem))% · 已用 \(String(format: "%.1f", weeklyUsed))%")
+                                Text(L10n.dashboardWeeklyUsage(remaining: weeklyRem, used: weeklyUsed))
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text("剩余 \(String(format: "%.1f", weeklyRem))%")
+                            Text(L10n.dashboardRemaining(percent: weeklyRem))
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
                                 .foregroundStyle(.blue)
                         }
@@ -143,20 +146,20 @@ public struct QuotaDashboardView: View {
                         
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("周重置时间")
+                                Text(L10n.dashboardWeeklyReset)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 if let wReset = quotaEngine.currentQuota.weeklyResetsAt {
                                     Text(formatDateTime(wReset))
                                         .font(.caption.bold())
                                 } else {
-                                    Text("每周循环")
+                                    Text(isZh ? "每周循环" : "Weekly Cycle")
                                         .font(.caption)
                                 }
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
-                                Text("周周期倒计时")
+                                Text(L10n.dashboardWeeklyResetRemaining)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Text(quotaEngine.currentQuota.formattedWeeklyRemainingTime)

@@ -114,6 +114,7 @@ public struct NavigationToolbarView: View {
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var queueManager = JobQueueManager.shared
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     @Namespace private var segmentNamespace
     @State private var hoveredTab: NavigationTab? = nil
 
@@ -136,7 +137,7 @@ public struct NavigationToolbarView: View {
 
         HStack(spacing: 0) {
             tabButton(
-                title: "调度队列",
+                title: NavigationTab.queue.title,
                 badge: activeCount > 0 ? "\(activeCount)" : nil,
                 badgeColor: .blue,
                 tab: .queue
@@ -145,7 +146,7 @@ public struct NavigationToolbarView: View {
             divider(between: .queue, and: .history)
 
             tabButton(
-                title: "历史留痕",
+                title: NavigationTab.history.title,
                 badge: nil,
                 badgeColor: .secondary,
                 tab: .history
@@ -154,7 +155,7 @@ public struct NavigationToolbarView: View {
             divider(between: .history, and: .dashboard)
 
             tabButton(
-                title: "额度看板",
+                title: NavigationTab.dashboard.title,
                 badge: "\(remainingPercent)%",
                 badgeColor: quotaBadgeColor,
                 tab: .dashboard

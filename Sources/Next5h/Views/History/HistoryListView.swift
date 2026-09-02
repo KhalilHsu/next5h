@@ -4,18 +4,30 @@ import AppKit
 public struct HistoryListView: View {
     @ObservedObject private var historyManager = DispatchHistoryManager.shared
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     
     @State private var filterSelection: HistoryFilter = .all
     @State private var showClearConfirmation: Bool = false
     
+    private var isZh: Bool { loc.currentLanguage == .zh }
+    
     public init() {}
     
     public enum HistoryFilter: String, CaseIterable, Identifiable {
-        case all = "全部"
-        case success = "成功"
-        case failure = "失败"
+        case all = "all"
+        case success = "success"
+        case failure = "failure"
         
         public var id: String { rawValue }
+        
+        public var label: String {
+            let isZh = LocalizationManager.shared.currentLanguage == .zh
+            switch self {
+            case .all: return isZh ? "全部" : "All"
+            case .success: return isZh ? "成功" : "Success"
+            case .failure: return isZh ? "失败" : "Failure"
+            }
+        }
     }
     
     private var filteredRecords: [DispatchHistoryRecord] {
@@ -47,11 +59,11 @@ public struct HistoryListView: View {
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
-                            Text("历史发送流水")
+                            Text(L10n.historyTitle)
                                 .font(.title3.bold())
                             
                             if !historyManager.records.isEmpty {
-                                Text("累计 \(historyManager.records.count) 次")
+                                Text(L10n.historyTotalCount(historyManager.records.count))
                                     .font(.caption.bold())
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
@@ -60,7 +72,7 @@ public struct HistoryListView: View {
                             }
                         }
                         
-                        Text("自动记录每次 User Query 派发结果、耗时、模型参数与会话目标")
+                        Text(L10n.historySubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -72,7 +84,7 @@ public struct HistoryListView: View {
                         Button(role: .destructive) {
                             showClearConfirmation = true
                         } label: {
-                            Label("清空历史", systemImage: "trash")
+                            Label(L10n.historyClearAll, systemImage: "trash")
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.regular)
@@ -86,16 +98,16 @@ public struct HistoryListView: View {
                     // 快捷统计指标
                     HStack(spacing: 16) {
                         HStack(spacing: 4) {
-                            Text("今日成功:")
+                            Text(L10n.historyTodaySuccess)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                            Text("\(historyManager.todaySuccessCount) 次")
+                            Text("\(historyManager.todaySuccessCount)" + (isZh ? " 次" : ""))
                                 .font(.caption.bold())
                                 .foregroundStyle(.green)
                         }
                         
                         HStack(spacing: 4) {
-                            Text("整体成功率:")
+                            Text(L10n.historySuccessRate)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(successRateText)
@@ -109,7 +121,7 @@ public struct HistoryListView: View {
                     // 状态筛选器
                     Picker("", selection: $filterSelection) {
                         ForEach(HistoryFilter.allCases) { filter in
-                            Text(filter.rawValue).tag(filter)
+                            Text(filter.label).tag(filter)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -125,11 +137,11 @@ public struct HistoryListView: View {
                             .font(.system(size: 38, weight: .light))
                             .foregroundStyle(.tertiary)
                         
-                        Text(historyManager.records.isEmpty ? "暂无历史发送记录" : "当前筛选条件下无记录")
+                        Text(historyManager.records.isEmpty ? L10n.historyEmptyTitle : (isZh ? "当前筛选条件下无记录" : "No records for this filter"))
                             .font(.headline)
                             .foregroundStyle(.primary)
                         
-                        Text(historyManager.records.isEmpty ? "当排定的任务触发或手动发送后，将自动在此处生成执行留痕与耗时统计。" : "您可以切换筛选器查看全部记录。")
+                        Text(historyManager.records.isEmpty ? L10n.historyEmptySubtitle : (isZh ? "您可以切换筛选器查看全部记录。" : "You can switch filters to view all records."))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -150,16 +162,16 @@ public struct HistoryListView: View {
         }
         .scrollContentBackground(.hidden)
         .confirmationDialog(
-            "确定要清空所有历史发送记录吗？",
+            L10n.historyClearConfirmTitle,
             isPresented: $showClearConfirmation,
             titleVisibility: .visible
         ) {
-            Button("清空全部记录", role: .destructive) {
+            Button(L10n.confirmClear, role: .destructive) {
                 historyManager.clearAll()
             }
-            Button("取消", role: .cancel) {}
+            Button(L10n.cancel, role: .cancel) {}
         } message: {
-            Text("清空后将无法找回历史派发日志，但不会影响调度队列中的待执行任务。")
+            Text(L10n.historyClearConfirmMessage)
         }
     }
 }
@@ -169,17 +181,20 @@ struct HistoryRecordRowView: View {
     @ObservedObject private var historyManager = DispatchHistoryManager.shared
     @ObservedObject private var queueManager = JobQueueManager.shared
     @ObservedObject private var appState = AppState.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     
     @State private var hasCopied = false
     @State private var isResending = false
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     private func formatDateTime(_ date: Date) -> String {
         let calendar = Calendar.current
         let formatter = DateFormatter()
         if calendar.isDateInToday(date) {
-            formatter.dateFormat = "今天 HH:mm:ss"
+            formatter.dateFormat = "\(isZh ? "今天" : "Today") HH:mm:ss"
         } else if calendar.isDateInYesterday(date) {
-            formatter.dateFormat = "昨天 HH:mm:ss"
+            formatter.dateFormat = "\(isZh ? "昨天" : "Yesterday") HH:mm:ss"
         } else {
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         }
@@ -225,14 +240,14 @@ struct HistoryRecordRowView: View {
                     .background(Capsule().fill(Color.orange.opacity(0.15)))
                     .foregroundStyle(.orange)
                 
-                Text("推理: \(record.reasoningEffort)")
+                Text(isZh ? "推理: \(record.reasoningEffort)" : "Effort: \(record.reasoningEffort)")
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.secondary.opacity(0.1)))
                     .foregroundStyle(.secondary)
                 
-                Text(record.dispatchMode == .silentAPI ? "静默 CLI" : "前台 GUI")
+                Text(record.dispatchMode == .silentAPI ? (isZh ? "静默 CLI" : "Silent CLI") : (isZh ? "前台 GUI" : "Foreground GUI"))
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -257,7 +272,7 @@ struct HistoryRecordRowView: View {
                     .foregroundStyle(.secondary)
                 
                 if let sessionId = record.targetSessionId, !sessionId.isEmpty {
-                    Text("• 会话: \(sessionId.prefix(8))...")
+                    Text(isZh ? "• 会话: \(sessionId.prefix(8))..." : "• Session: \(sessionId.prefix(8))...")
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
@@ -267,7 +282,7 @@ struct HistoryRecordRowView: View {
             // Prompt 内容预览区
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("User Query 内容:")
+                    Text(isZh ? "User Query 内容:" : "User Query Content:")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -281,7 +296,7 @@ struct HistoryRecordRowView: View {
                     } label: {
                         HStack(spacing: 3) {
                             Image(systemName: hasCopied ? "checkmark" : "doc.on.doc")
-                            Text(hasCopied ? "已复制" : "复制")
+                            Text(hasCopied ? (isZh ? "已复制" : "Copied") : (isZh ? "复制" : "Copy"))
                         }
                         .font(.system(size: 10))
                     }
@@ -303,7 +318,7 @@ struct HistoryRecordRowView: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .font(.caption)
                         .foregroundStyle(.red)
-                    Text("错误详情: \(err)")
+                    Text(isZh ? "错误详情: \(err)" : "Error: \(err)")
                         .font(.caption2)
                         .foregroundStyle(.red)
                 }
@@ -323,7 +338,7 @@ struct HistoryRecordRowView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.clockwise")
-                        Text("再次发送")
+                        Text(isZh ? "再次发送" : "Resend")
                     }
                     .font(.caption.bold())
                 }
@@ -336,7 +351,7 @@ struct HistoryRecordRowView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "doc.badge.plus")
-                        Text("以此为模板新建")
+                        Text(isZh ? "以此为模板新建" : "Use as Template")
                     }
                     .font(.caption)
                 }
@@ -351,7 +366,7 @@ struct HistoryRecordRowView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "bubble.left.and.bubble.right")
-                            Text("在 Codex 中打开")
+                            Text(isZh ? "在 Codex 中打开" : "Open in Codex")
                         }
                         .font(.caption)
                     }
@@ -393,12 +408,12 @@ struct HistoryRecordRowView: View {
         
         var destination = TargetDestination()
         if let sId = record.targetSessionId, !sId.isEmpty {
-            destination.conversationAction = .existing(id: sId, title: "历史会话")
+            destination.conversationAction = .existing(id: sId, title: isZh ? "历史会话" : "History Session")
         }
         
         let temporaryJob = ScheduledJob(
             id: UUID(),
-            title: "\(record.title) (再次发送)",
+            title: "\(record.title) (\(isZh ? "再次发送" : "Resend"))",
             prompt: record.prompt,
             model: model,
             reasoningEffort: effort,
@@ -433,7 +448,7 @@ struct HistoryRecordRowView: View {
         
         var destination = TargetDestination()
         if let sId = record.targetSessionId, !sId.isEmpty {
-            destination.conversationAction = .existing(id: sId, title: "历史会话")
+            destination.conversationAction = .existing(id: sId, title: isZh ? "历史会话" : "History Session")
         }
         
         let job = ScheduledJob(

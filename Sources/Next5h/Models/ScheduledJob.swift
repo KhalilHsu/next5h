@@ -9,13 +9,14 @@ public enum JobStatus: Codable, Equatable {
     case paused
     
     public var statusName: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .pending: return "待触发"
-        case .waitingForQuota: return "等待 5H 额度解封"
-        case .sending: return "发送中..."
-        case .completed: return "已完成"
-        case .failed(let err): return "失败: \(err)"
-        case .paused: return "已暂停"
+        case .pending: return isZh ? "待触发" : "Pending"
+        case .waitingForQuota: return isZh ? "等待 5H 额度解封" : "Waiting for 5H Quota"
+        case .sending: return isZh ? "发送中..." : "Sending..."
+        case .completed: return isZh ? "已完成" : "Completed"
+        case .failed(let err): return isZh ? "失败: \(err)" : "Failed: \(err)"
+        case .paused: return isZh ? "已暂停" : "Paused"
         }
     }
     

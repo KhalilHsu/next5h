@@ -186,9 +186,20 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(tabs[1], .history)
         XCTAssertEqual(tabs[2], .dashboard)
         
-        XCTAssertEqual(NavigationTab.queue.title, "调度队列")
-        XCTAssertEqual(NavigationTab.history.title, "历史留痕")
+        // 测试中文模式
+        LocalizationManager.shared.setLanguage(.zh)
+        XCTAssertEqual(NavigationTab.queue.title, "待发消息")
+        XCTAssertEqual(NavigationTab.history.title, "消息历史")
         XCTAssertEqual(NavigationTab.dashboard.title, "额度看板")
+        
+        // 测试英文模式
+        LocalizationManager.shared.setLanguage(.en)
+        XCTAssertEqual(NavigationTab.queue.title, "Pending")
+        XCTAssertEqual(NavigationTab.history.title, "History")
+        XCTAssertEqual(NavigationTab.dashboard.title, "Quota")
+        
+        // 恢复默认中文测试环境
+        LocalizationManager.shared.setLanguage(.zh)
         
         let appState = AppState.shared
         XCTAssertEqual(appState.selectedTab, .queue)
@@ -206,6 +217,26 @@ final class Next5hTests: XCTestCase {
         appState.closeJobSheet()
         XCTAssertFalse(appState.isShowingJobSheet)
         XCTAssertNil(appState.editingJob)
+    }
+    
+    func testLocalizationManagerLanguageSwitching() {
+        let loc = LocalizationManager.shared
+        
+        loc.setLanguage(.en)
+        XCTAssertEqual(loc.currentLanguage, .en)
+        XCTAssertEqual(L10n.tabPending, "Pending")
+        XCTAssertEqual(L10n.tabHistory, "History")
+        XCTAssertEqual(L10n.tabDashboard, "Quota")
+        XCTAssertEqual(L10n.menuQuit, "Quit Next5h")
+        XCTAssertEqual(L10n.queueNewMessage, "New Message")
+        
+        loc.setLanguage(.zh)
+        XCTAssertEqual(loc.currentLanguage, .zh)
+        XCTAssertEqual(L10n.tabPending, "待发消息")
+        XCTAssertEqual(L10n.tabHistory, "消息历史")
+        XCTAssertEqual(L10n.tabDashboard, "额度看板")
+        XCTAssertEqual(L10n.menuQuit, "退出 Next5h")
+        XCTAssertEqual(L10n.queueNewMessage, "新建消息")
     }
     
     func testStatusItemRendererMonochromeDualCylinder() {

@@ -37,6 +37,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
             }
             .store(in: &cancellables)
         
+        // 4. 监听语言切换，实时更新状态栏菜单文案
+        LocalizationManager.shared.$currentLanguage
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateMenu()
+            }
+            .store(in: &cancellables)
+        
         print("🚀 Next5h 已启动，支持状态栏双圆柱监控与常驻后台运行")
     }
     
@@ -132,7 +140,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         let menu = NSMenu()
         
         // 1. 打开主面板
-        let openItem = NSMenuItem(title: "🖥️ 打开 Next5h 工作台", action: #selector(handleOpenMainWindow), keyEquivalent: "o")
+        let openItem = NSMenuItem(title: L10n.menuOpenWorkbench, action: #selector(handleOpenMainWindow), keyEquivalent: "o")
         openItem.target = self
         menu.addItem(openItem)
         
@@ -140,37 +148,56 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         
         // 2. 实时 5H 额度信息
         let quota = QuotaProbeEngine.shared.currentQuota
-        let rem5hText = "🟢 5H 剩余: \(Int(quota.remainingPercent))%"
+        let rem5hText = "\(L10n.menuQuota5h) \(Int(quota.remainingPercent))%"
         let resetTimeStr: String
         if let reset = quota.resetsAt {
             let df = DateFormatter()
             df.dateFormat = "HH:mm:ss"
             resetTimeStr = df.string(from: reset)
         } else {
-            resetTimeStr = "未受限"
+            resetTimeStr = L10n.menuUnrestricted
         }
-        let item5h = NSMenuItem(title: "\(rem5hText)  (重置: \(resetTimeStr))", action: nil, keyEquivalent: "")
+        let item5h = NSMenuItem(title: "\(rem5hText)  (\(L10n.menuResetAt) \(resetTimeStr))", action: nil, keyEquivalent: "")
         item5h.isEnabled = false
         menu.addItem(item5h)
         
         // 3. 实时 周额度信息
         let remWeekly = quota.weeklyRemainingPercent ?? 100.0
-        let itemWeekly = NSMenuItem(title: "🔵 周额度剩余: \(Int(remWeekly))%  (\(quota.formattedWeeklyRemainingTime))", action: nil, keyEquivalent: "")
+        let itemWeekly = NSMenuItem(title: "\(L10n.menuQuotaWeekly) \(Int(remWeekly))%  (\(quota.formattedWeeklyRemainingTime))", action: nil, keyEquivalent: "")
         itemWeekly.isEnabled = false
         menu.addItem(itemWeekly)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 4. 刷新与退出
-        let refreshItem = NSMenuItem(title: "🔄 立即刷新额度", action: #selector(handleRefreshQuota), keyEquivalent: "r")
+        // 4. 语言切换子菜单
+        let langMenu = NSMenu()
+        let currentLang = LocalizationManager.shared.currentLanguage
+        for lang in AppLanguage.allCases {
+            let langItem = NSMenuItem(title: lang.displayName, action: #selector(handleSelectLanguage(_:)), keyEquivalent: "")
+            langItem.target = self
+            langItem.representedObject = lang
+            langItem.state = (lang == currentLang) ? .on : .off
+            langMenu.addItem(langItem)
+        }
+        let langParentItem = NSMenuItem(title: L10n.menuLanguageSubmenu, action: nil, keyEquivalent: "")
+        langParentItem.submenu = langMenu
+        menu.addItem(langParentItem)
+        
+        // 5. 刷新与退出
+        let refreshItem = NSMenuItem(title: L10n.menuRefreshQuota, action: #selector(handleRefreshQuota), keyEquivalent: "r")
         refreshItem.target = self
         menu.addItem(refreshItem)
         
-        let quitItem = NSMenuItem(title: "退出 Next5h", action: #selector(handleQuit), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: L10n.menuQuit, action: #selector(handleQuit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
         statusItem?.menu = menu
+    }
+    
+    @objc private func handleSelectLanguage(_ sender: NSMenuItem) {
+        guard let lang = sender.representedObject as? AppLanguage else { return }
+        LocalizationManager.shared.setLanguage(lang)
     }
     
     @objc private func handleOpenMainWindow() {

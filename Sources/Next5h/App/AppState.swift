@@ -10,9 +10,9 @@ public enum NavigationTab: String, CaseIterable, Identifiable {
     
     public var title: String {
         switch self {
-        case .queue: return "调度队列"
-        case .history: return "历史留痕"
-        case .dashboard: return "额度看板"
+        case .queue: return L10n.tabPending
+        case .history: return L10n.tabHistory
+        case .dashboard: return L10n.tabDashboard
         }
     }
     
