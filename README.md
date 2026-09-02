@@ -10,10 +10,6 @@
 
 > 为 macOS 开发者量身打造的 **Codex 5H 窗口自动续航与任务排定工具**。在 5H 额度解封或每天指定时间，自动唤醒 Mac 并向本地 Codex 客户端静默/前台派发任务，绝不浪费任何 5H 宝贵算力。
 
-<p align="center">
-  <img src="assets/screenshot.png" alt="Next5h macOS 真实运行界面" width="820" style="max-width: 100%; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</p>
-
 ---
 
 ## ✨ 核心特性与技术亮点
@@ -69,6 +65,10 @@
   编程过程中额度耗尽？排定下一步重构或测试任务并选择「5H 解封后发送」。Next5h 实时监听官方额度，一旦重置解封立即自动触发执行，算力永不闲置。
 * 🌙 **深夜离线批量无人值守流水线**：
   睡前将耗时较长或多模块的重构任务排定在凌晨，Mac 自动唤醒并在后台静默调用官方 CLI 执行，早晨开盖即可检视执行结果与 Git Diff。
+
+<p align="center">
+  <img src="assets/screenshot.png" alt="Next5h 真实运行界面示例" width="760" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);" />
+</p>
 
 ---
 
