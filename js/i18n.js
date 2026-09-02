@@ -21,7 +21,7 @@ const translations = {
     
     // Hero
     "hero.pill": "macOS 原生架构 · 榨干 Codex 算力极限",
-    "hero.title": "不要浪费任何一个 5H 额度<br><span class=\"hero-title-highlight\">额度到期预定 · 清晨定时激活 · 吃满 3 个窗口</span>",
+    "hero.title": "不要浪费任何一个 5H 额度<br><span class=\"hero-title-highlight\">提前预定自动发送 · 清晨定时吃满窗口</span>",
     "hero.ctaInstall": "⚡️ 开始安装体验",
     "hero.ctaValues": "了解 2 大核心玩法 ➔",
     "hero.ctaFaq": "查看常见问题 ➔",
@@ -173,7 +173,7 @@ const translations = {
 
     // Hero
     "hero.pill": "macOS Native Architecture · Maximize Codex Compute Limits",
-    "hero.title": "Never Waste a Single 5H Quota<br><span class=\"hero-title-highlight\">Quota Reset Queue · Morning Scheduled Wakeup · Max 3 Daily Windows</span>",
+    "hero.title": "Never Waste a Single 5H Quota<br><span class=\"hero-title-highlight\">Auto-Dispatch on Reset · Scheduled Morning Multi-Window</span>",
     "hero.ctaInstall": "⚡️ Install & Get Started",
     "hero.ctaValues": "Explore 2 Core Pillars ➔",
     "hero.ctaFaq": "View FAQ ➔",
