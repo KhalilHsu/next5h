@@ -8,8 +8,6 @@ public struct ModelAndEffortPickerView: View {
     @ObservedObject private var catalogService = ModelCatalogService.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     public init(
         model: Binding<DynamicCodexModel>,
         reasoningEffort: Binding<ReasoningEffort>,
@@ -23,7 +21,7 @@ public struct ModelAndEffortPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label(isZh ? "模型与推理参数" : "Model & Reasoning", systemImage: "cpu")
+                Label(L10n.tr(zh: "模型与推理参数", en: "Model & Reasoning", ja: "モデル＆推論設定"), systemImage: "cpu")
                     .font(.subheadline.bold())
                 Spacer()
                 
@@ -48,7 +46,7 @@ public struct ModelAndEffortPickerView: View {
                         }
                     } label: {
                         HStack {
-                            Text(isZh ? "选择模型" : "Select Model")
+                            Text(L10n.tr(zh: "选择模型", en: "Select Model", ja: "モデル選択"))
                             Spacer()
                             Text(model.displayName)
                         }
@@ -70,7 +68,7 @@ public struct ModelAndEffortPickerView: View {
                         }
                     } label: {
                         HStack {
-                            Text(isZh ? "推理强度" : "Reasoning Effort")
+                            Text(L10n.tr(zh: "推理强度", en: "Reasoning Effort", ja: "推論レベル"))
                             Spacer()
                             Text(reasoningEffort.displayName)
                         }
@@ -93,7 +91,7 @@ public struct ModelAndEffortPickerView: View {
                             }
                         } label: {
                             HStack {
-                                Text(isZh ? "响应速度" : "Response Speed")
+                                Text(L10n.tr(zh: "响应速度", en: "Response Speed", ja: "応答速度"))
                                 Spacer()
                                 Text(speed.displayName)
                             }
@@ -107,7 +105,7 @@ public struct ModelAndEffortPickerView: View {
                         reasoningEffort = .medium
                         speed = .standard
                     } label: {
-                        Label(isZh ? "重置为默认设置" : "Reset to Defaults", systemImage: "arrow.counterclockwise")
+                        Label(L10n.tr(zh: "重置为默认设置", en: "Reset to Defaults", ja: "デフォルトに戻す"), systemImage: "arrow.counterclockwise")
                     }
                 } label: {
                     HStack(spacing: 6) {
@@ -130,7 +128,7 @@ public struct ModelAndEffortPickerView: View {
             // 当前参数概要说明
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(isZh ? "当前模型" : "Current Model")
+                    Text(L10n.tr(zh: "当前模型", en: "Current Model", ja: "現在のモデル"))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(model.displayName)
@@ -141,7 +139,7 @@ public struct ModelAndEffortPickerView: View {
                     .frame(height: 20)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(isZh ? "推理强度" : "Reasoning Effort")
+                    Text(L10n.tr(zh: "推理强度", en: "Reasoning Effort", ja: "推論レベル"))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(reasoningEffort.displayName)
@@ -153,7 +151,7 @@ public struct ModelAndEffortPickerView: View {
                         .frame(height: 20)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(isZh ? "响应速度" : "Speed")
+                        Text(L10n.tr(zh: "响应速度", en: "Speed", ja: "応答速度"))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                         Text(speed.displayName)

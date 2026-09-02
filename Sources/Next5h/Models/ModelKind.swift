@@ -12,12 +12,11 @@ public enum ReasoningEffort: String, Codable, CaseIterable, Identifiable {
     
     /// 100% 对齐官方客户端本地化文案
     public var displayName: String {
-        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .low: return isZh ? "轻度" : "Low"
-        case .medium: return isZh ? "中" : "Medium"
-        case .high: return isZh ? "高" : "High"
-        case .xhigh: return isZh ? "极高" : "Extra High"
+        case .low: return L10n.tr(zh: "轻度", en: "Low", ja: "低")
+        case .medium: return L10n.tr(zh: "中", en: "Medium", ja: "中")
+        case .high: return L10n.tr(zh: "高", en: "High", ja: "高")
+        case .xhigh: return L10n.tr(zh: "极高", en: "Extra High", ja: "最高")
         case .max: return "Max"
         case .ultra: return "Ultra"
         }
@@ -46,10 +45,9 @@ public enum SpeedPreference: String, Codable, CaseIterable, Identifiable {
     
     public var id: String { rawValue }
     public var displayName: String {
-        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .standard: return isZh ? "标准" : "Standard"
-        case .fast: return isZh ? "快速" : "Fast"
+        case .standard: return L10n.tr(zh: "标准", en: "Standard", ja: "標準")
+        case .fast: return L10n.tr(zh: "快速", en: "Fast", ja: "高速")
         }
     }
 }

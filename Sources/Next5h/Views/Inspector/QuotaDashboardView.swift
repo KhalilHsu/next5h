@@ -4,8 +4,6 @@ public struct QuotaDashboardView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     public init() {}
     
     private func formatDateTime(_ date: Date) -> String {
@@ -153,7 +151,7 @@ public struct QuotaDashboardView: View {
                                     Text(formatDateTime(wReset))
                                         .font(.caption.bold())
                                 } else {
-                                    Text(isZh ? "每周循环" : "Weekly Cycle")
+                                    Text(L10n.tr(zh: "每周循环", en: "Weekly Cycle", ja: "週間サイクル"))
                                         .font(.caption)
                                 }
                             }

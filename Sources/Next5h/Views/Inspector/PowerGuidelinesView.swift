@@ -5,8 +5,6 @@ public struct PowerGuidelinesSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     public init() {}
     
     public var body: some View {
@@ -17,11 +15,15 @@ public struct PowerGuidelinesSheetView: View {
                     Image(systemName: "bolt.shield.fill")
                         .font(.title2)
                         .foregroundStyle(.orange)
-                    Text(isZh ? "Mac 锁屏与休眠派发保障指南" : "Mac Lock Screen & Sleep Dispatch Guide")
-                        .font(.title3.bold())
+                    Text(L10n.tr(
+                        zh: "Mac 锁屏与休眠派发保障指南",
+                        en: "Mac Lock Screen & Sleep Dispatch Guide",
+                        ja: "画面ロック＆スリープ復帰ガイド"
+                    ))
+                    .font(.title3.bold())
                 }
                 Spacer()
-                Button(isZh ? "完成" : "Done") {
+                Button(L10n.tr(zh: "完成", en: "Done", ja: "完了")) {
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -41,11 +43,19 @@ public struct PowerGuidelinesSheetView: View {
                             .font(.title3)
                             .foregroundStyle(.blue)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(isZh ? "核心原则：台式机全天候畅通，MacBook 建议开盖插电" : "Core Principle: Desktops always ready; MacBooks should be open & plugged in")
-                                .font(.headline)
-                            Text(isZh ? "Next5h 通过芯片级 RTC 硬件在到点前 60 秒叫醒 Mac，配合底层静默 CLI 发送，无需登录解锁屏幕。" : "Next5h uses chip-level RTC hardware to wake Mac 60s early, sending via silent CLI without unlocking screen.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(L10n.tr(
+                                zh: "核心原则：台式机全天候畅通，MacBook 建议开盖插电",
+                                en: "Core Principle: Desktops always ready; MacBooks should be open & plugged in",
+                                ja: "基本原則：デスクトップは常時待機可能、MacBookは開蓋給電を推奨"
+                            ))
+                            .font(.headline)
+                            Text(L10n.tr(
+                                zh: "Next5h 通过芯片级 RTC 硬件在到点前 60 秒叫醒 Mac，配合底层静默 CLI 发送，无需登录解锁屏幕。",
+                                en: "Next5h uses chip-level RTC hardware to wake Mac 60s early, sending via silent CLI without unlocking screen.",
+                                ja: "Next5h はハードウェアRTCにより60秒前にMacを自動復帰させ、画面ロック解除不要でバックグラウンド送信します。"
+                            ))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                     }
                     .padding(12)
@@ -56,51 +66,91 @@ public struct PowerGuidelinesSheetView: View {
                     // 场景一：Mac 台式机
                     PowerScenarioCard(
                         icon: "macstudio",
-                        title: isZh ? "1. Mac 台式机 (Mac mini / Studio / Pro / iMac)" : "1. Desktop Mac (Mac mini / Studio / Pro / iMac)",
-                        badge: isZh ? "全天候无忧" : "24/7 Always Ready",
+                        title: L10n.tr(
+                            zh: "1. Mac 台式机 (Mac mini / Studio / Pro / iMac)",
+                            en: "1. Desktop Mac (Mac mini / Studio / Pro / iMac)",
+                            ja: "1. デスクトップ Mac (Mac mini / Studio / Pro / iMac)"
+                        ),
+                        badge: L10n.tr(zh: "全天候无忧", en: "24/7 Always Ready", ja: "常時稼働可能"),
                         badgeColor: .green,
                         rows: [
-                            (isZh ? "锁屏 / 显示器关闭" : "Lock Screen / Display Sleep", isZh ? "✅ 100% 正常派发" : "✅ 100% Dispatched", isZh ? "系统内核全速常驻，到点静默派发，无任何阻碍" : "Kernel active, silent dispatch without obstruction"),
-                            (isZh ? "系统深度休眠 (Sleep)" : "System Sleep", isZh ? "✅ 自动唤醒并派发" : "✅ Auto-wakes and Dispatches", isZh ? "硬件 RTC 提前 60s 唤醒系统，握手网络后直接发送" : "RTC wakes system 60s ahead, waits for network then dispatches")
+                            (
+                                L10n.tr(zh: "锁屏 / 显示器关闭", en: "Lock Screen / Display Sleep", ja: "画面ロック / ディスプレイ消灯"),
+                                L10n.tr(zh: "✅ 100% 正常派发", en: "✅ 100% Dispatched", ja: "✅ 100% 送信完了"),
+                                L10n.tr(zh: "系统内核全速常驻，到点静默派发，无任何阻碍", en: "Kernel active, silent dispatch without obstruction", ja: "カーネルが常時稼働し、静かに自動送信されます")
+                            ),
+                            (
+                                L10n.tr(zh: "系统深度休眠 (Sleep)", en: "System Sleep", ja: "ディープスリープ (Sleep)"),
+                                L10n.tr(zh: "✅ 自动唤醒并派发", en: "✅ Auto-wakes and Dispatches", ja: "✅ 自動復帰して送信"),
+                                L10n.tr(zh: "硬件 RTC 提前 60s 唤醒系统，握手网络后直接发送", en: "RTC wakes system 60s ahead, waits for network then dispatches", ja: "RTCが60秒前にシステムを起動し、ネット接続後に送信します")
+                            )
                         ]
                     )
                     
                     // 场景二：MacBook 笔记本
                     PowerScenarioCard(
                         icon: "laptopcomputer",
-                        title: isZh ? "2. MacBook 笔记本 (Air / Pro)" : "2. MacBook (Air / Pro)",
-                        badge: isZh ? "需注意开合盖" : "Lid Status Matters",
+                        title: L10n.tr(zh: "2. MacBook 笔记本 (Air / Pro)", en: "2. MacBook (Air / Pro)", ja: "2. MacBook (Air / Pro)"),
+                        badge: L10n.tr(zh: "需注意开合盖", en: "Lid Status Matters", ja: "画面開閉状態に注意"),
                         badgeColor: .orange,
                         rows: [
-                            (isZh ? "开盖 + 连接电源 (推荐)" : "Lid Open + Plugged In (Recommended)", isZh ? "✅ 100% 稳定发送" : "✅ 100% Reliable", isZh ? "锁屏或休眠下均能由 RTC 准时唤醒并完成派发" : "RTC reliably wakes and dispatches during sleep or lock screen"),
-                            (isZh ? "开盖 + 纯电池供电" : "Lid Open + On Battery", isZh ? "⚠️ 支持，但受电量限制" : "⚠️ Supported, Battery Dependent", isZh ? "低电量或省电模式可能延迟网络握手，建议插电" : "Low battery or power saving may delay Wi-Fi handshake; AC recommended"),
-                            (isZh ? "合盖 + 外接显示器 (Clamshell)" : "Clamshell Mode (Display Attached)", isZh ? "✅ 100% 稳定发送" : "✅ 100% Reliable", isZh ? "macOS 官方合盖台式机模式，插电即能持续运行" : "Official macOS clamshell mode; runs continuously when plugged in"),
-                            (isZh ? "纯合盖 (无外接显示器)" : "Closed Lid (No External Display)", isZh ? "❌ 无法保证 (系统限制)" : "❌ Not Guaranteed (OS Limit)", isZh ? "Apple Silicon 固件为防过热会关闭 Wi-Fi 芯片并阻止网络唤醒" : "Apple Silicon firmware cuts Wi-Fi to prevent overheating in bags")
+                            (
+                                L10n.tr(zh: "开盖 + 连接电源 (推荐)", en: "Lid Open + Plugged In (Recommended)", ja: "開蓋 + 電源接続 (推奨)"),
+                                L10n.tr(zh: "✅ 100% 稳定发送", en: "✅ 100% Reliable", ja: "✅ 100% 安定送信"),
+                                L10n.tr(zh: "锁屏或休眠下均能由 RTC 准时唤醒并完成派发", en: "RTC reliably wakes and dispatches during sleep or lock screen", ja: "RTCによりスリープや画面ロック時でも確実に復帰して送信")
+                            ),
+                            (
+                                L10n.tr(zh: "开盖 + 纯电池供电", en: "Lid Open + On Battery", ja: "開蓋 + バッテリー駆動"),
+                                L10n.tr(zh: "⚠️ 支持，但受电量限制", en: "⚠️ Supported, Battery Dependent", ja: "⚠️ 残量に依存"),
+                                L10n.tr(zh: "低电量或省电模式可能延迟网络握手，建议插电", en: "Low battery or power saving may delay Wi-Fi handshake; AC recommended", ja: "省電力モード時はWi-Fi接続が遅延する可能性があるため給電を推奨")
+                            ),
+                            (
+                                L10n.tr(zh: "合盖 + 外接显示器 (Clamshell)", en: "Clamshell Mode (Display Attached)", ja: "閉蓋 + 外部ディスプレイ (クラムシェル)"),
+                                L10n.tr(zh: "✅ 100% 稳定发送", en: "✅ 100% Reliable", ja: "✅ 100% 安定送信"),
+                                L10n.tr(zh: "macOS 官方合盖台式机模式，插电即能持续运行", en: "Official macOS clamshell mode; runs continuously when plugged in", ja: "macOS公式クラムシェルモードとして常時安定稼働")
+                            ),
+                            (
+                                L10n.tr(zh: "纯合盖 (无外接显示器)", en: "Closed Lid (No External Display)", ja: "閉蓋 (外部ディスプレイなし)"),
+                                L10n.tr(zh: "❌ 无法保证 (系统限制)", en: "❌ Not Guaranteed (OS Limit)", ja: "❌ 保証外 (OS仕様)"),
+                                L10n.tr(zh: "Apple Silicon 固件为防过热会关闭 Wi-Fi 芯片并阻止网络唤醒", en: "Apple Silicon firmware cuts Wi-Fi to prevent overheating in bags", ja: "過熱防止のためApple SiliconファームウェアがWi-Fiを遮断します")
+                            )
                         ]
                     )
                     
                     // 场景三：发送模式选择
                     PowerScenarioCard(
                         icon: "paperplane.circle.fill",
-                        title: isZh ? "3. 任务派发模式与锁屏兼容性" : "3. Dispatch Mode & Lock Screen Compatibility",
-                        badge: isZh ? "推荐静默模式" : "Silent Mode Recommended",
+                        title: L10n.tr(zh: "3. 任务派发模式与锁屏兼容性", en: "3. Dispatch Mode & Lock Screen Compatibility", ja: "3. 送信モードと画面ロックの互換性"),
+                        badge: L10n.tr(zh: "推荐静默模式", en: "Silent Mode Recommended", ja: "サイレント推奨"),
                         badgeColor: .blue,
                         rows: [
-                            (isZh ? "后台静默 CLI 模式 (默认)" : "Silent Background CLI (Default)", isZh ? "✅ 锁屏兼容最佳" : "✅ Best Lock Screen Compatibility", isZh ? "直接调用底层 codex CLI，无视屏幕锁定，零界面打扰" : "Directly invokes codex CLI, ignores lock screen, zero interruption"),
-                            (isZh ? "前台 GUI 窗口模拟模式" : "Foreground GUI Simulation", isZh ? "⚠️ 需解锁屏幕" : "⚠️ Screen Unlock Required", isZh ? "需模拟按键与粘贴，macOS 锁屏下会拦截虚拟按键" : "Requires keystroke simulation, blocked when screen is locked")
+                            (
+                                L10n.tr(zh: "后台静默 CLI 模式 (默认)", en: "Silent Background CLI (Default)", ja: "バックグラウンド CLI (デフォルト)"),
+                                L10n.tr(zh: "✅ 锁屏兼容最佳", en: "✅ Best Lock Screen Compatibility", ja: "✅ 画面ロック完全対応"),
+                                L10n.tr(zh: "直接调用底层 codex CLI，无视屏幕锁定，零界面打扰", en: "Directly invokes codex CLI, ignores lock screen, zero interruption", ja: "画面ロック状態でもCLIから直接バックグラウンド送信")
+                            ),
+                            (
+                                L10n.tr(zh: "前台 GUI 窗口模拟模式", en: "Foreground GUI Simulation", ja: "前面 GUI ウィンドウ操作"),
+                                L10n.tr(zh: "⚠️ 需解锁屏幕", en: "⚠️ Screen Unlock Required", ja: "⚠️ 画面ロック解除が必要"),
+                                L10n.tr(zh: "需模拟按键与粘贴，macOS 锁屏下会拦截虚拟按键", en: "Requires keystroke simulation, blocked when screen is locked", ja: "キー入力シミュレーションが必要なためロック中は実行不可")
+                            )
                         ]
                     )
                     
                     // 底层技术原理一览
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(isZh ? "🛠 底层技术守护机制" : "🛠 System Guard Mechanisms")
+                        Text(L10n.tr(zh: "🛠 底层技术守护机制", en: "🛠 System Guard Mechanisms", ja: "🛠 技術的保護メカニズム"))
                             .font(.caption.bold())
                             .foregroundStyle(.secondary)
                         
-                        Text(isZh ? "• IOPMSchedulePowerEvent：直接向主板 RTC 实时时钟注册硬件定时唤醒。\n• IOPMAssertionCreateWithName：派发时申请 PreventUserIdleSystemSleep 电源断言防止中途休眠。\n• NetworkMonitor：自动检测并等待 Wi-Fi/以太网就绪后再发送，杜绝断网报错。" : "• IOPMSchedulePowerEvent: Registers hardware wake alarms with RTC clock.\n• IOPMAssertionCreateWithName: Prevents sleep during dispatch with power assertion.\n• NetworkMonitor: Ensures network connectivity before sending to avoid failures.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineSpacing(3)
+                        Text(L10n.tr(
+                            zh: "• IOPMSchedulePowerEvent：直接向主板 RTC 实时时钟注册硬件定时唤醒。\n• IOPMAssertionCreateWithName：派发时申请 PreventUserIdleSystemSleep 电源断言防止中途休眠。\n• NetworkMonitor：自动检测并等待 Wi-Fi/以太网就绪后再发送，杜绝断网报错。",
+                            en: "• IOPMSchedulePowerEvent: Registers hardware wake alarms with RTC clock.\n• IOPMAssertionCreateWithName: Prevents sleep during dispatch with power assertion.\n• NetworkMonitor: Ensures network connectivity before sending to avoid failures.",
+                            ja: "• IOPMSchedulePowerEvent: マザーボードのRTCハードウェアに自動復帰を直接登録。\n• IOPMAssertionCreateWithName: 送信時のPreventUserIdleSystemSleep断言により中断を防止。\n• NetworkMonitor: ネットワーク疎通を確認してから安全に送信。"
+                        ))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineSpacing(3)
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,18 +226,24 @@ public struct PowerQuickTipBanner: View {
     @State private var showSheet: Bool = false
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     public init() {}
     
     public var body: some View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(isZh ? "Mac 锁屏与休眠自动唤醒已受保护" : "Lock Screen & Sleep Auto-Wake Protected")
-                    .font(.caption.bold())
-                Text(isZh ? "Mac 台式机或 MacBook 开盖插电支持锁屏自动唤醒派发；合盖需外接显示器。" : "Desktop Mac or open plugged-in MacBook supports wake; clamshell requires display.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                Text(L10n.tr(
+                    zh: "Mac 锁屏与休眠自动唤醒已受保护",
+                    en: "Lock Screen & Sleep Auto-Wake Protected",
+                    ja: "画面ロック＆スリープ時の自動復帰に対応"
+                ))
+                .font(.caption.bold())
+                Text(L10n.tr(
+                    zh: "Mac 台式机或 MacBook 开盖插电支持锁屏自动唤醒派发；合盖需外接显示器。",
+                    en: "Desktop Mac or open plugged-in MacBook supports wake; clamshell requires display.",
+                    ja: "デスクトップまたは開蓋・給電中のMacBookは自動復帰可能です。閉蓋時は外部ディスプレイが必要です。"
+                ))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             }
             
             Spacer()
@@ -197,7 +253,7 @@ public struct PowerQuickTipBanner: View {
             } label: {
                 HStack(spacing: 3) {
                     Image(systemName: "questionmark.circle")
-                    Text(isZh ? "休眠规则" : "Sleep Rules")
+                    Text(L10n.tr(zh: "休眠规则", en: "Sleep Rules", ja: "スリープ規則"))
                 }
                 .font(.caption2.bold())
             }

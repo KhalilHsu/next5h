@@ -55,18 +55,25 @@ public struct QuotaSnapshot: Codable, Equatable {
     }
     
     public var formattedRemainingTime: String {
-        let isZh = LocalizationManager.shared.currentLanguage == .zh
         let sec = Int(remainingSeconds)
-        if sec <= 0 { return isZh ? "额度充裕 / 未受限" : "Unrestricted" }
+        if sec <= 0 {
+            return L10n.tr(zh: "额度充裕 / 未受限", en: "Unrestricted", ja: "制限なし")
+        }
         let hours = sec / 3600
         let mins = (sec % 3600) / 60
         let secs = sec % 60
         if hours > 0 {
-            return isZh ? String(format: "%d小时 %02d分 %02d秒", hours, mins, secs)
-                        : String(format: "%dh %02dm %02ds", hours, mins, secs)
+            return L10n.tr(
+                zh: String(format: "%d小时 %02d分 %02d秒", hours, mins, secs),
+                en: String(format: "%dh %02dm %02ds", hours, mins, secs),
+                ja: String(format: "%d時間 %02d分 %02d秒", hours, mins, secs)
+            )
         } else {
-            return isZh ? String(format: "%d分 %02d秒", mins, secs)
-                        : String(format: "%dm %02ds", mins, secs)
+            return L10n.tr(
+                zh: String(format: "%d分 %02d秒", mins, secs),
+                en: String(format: "%dm %02ds", mins, secs),
+                ja: String(format: "%d分 %02d秒", mins, secs)
+            )
         }
     }
     
@@ -76,18 +83,31 @@ public struct QuotaSnapshot: Codable, Equatable {
     }
     
     public var formattedWeeklyRemainingTime: String {
-        let isZh = LocalizationManager.shared.currentLanguage == .zh
         let sec = Int(weeklyRemainingSeconds)
-        if sec <= 0 { return isZh ? "未受限" : "Unrestricted" }
+        if sec <= 0 {
+            return L10n.tr(zh: "未受限", en: "Unrestricted", ja: "制限なし")
+        }
         let days = sec / 86400
         let hours = (sec % 86400) / 3600
         let mins = (sec % 3600) / 60
         if days > 0 {
-            return isZh ? "\(days)天 \(hours)小时" : "\(days)d \(hours)h"
+            return L10n.tr(
+                zh: "\(days)天 \(hours)小时",
+                en: "\(days)d \(hours)h",
+                ja: "\(days)日 \(hours)時間"
+            )
         } else if hours > 0 {
-            return isZh ? "\(hours)小时 \(mins)分" : "\(hours)h \(mins)m"
+            return L10n.tr(
+                zh: "\(hours)小时 \(mins)分",
+                en: "\(hours)h \(mins)m",
+                ja: "\(hours)時間 \(mins)分"
+            )
         } else {
-            return isZh ? "\(mins)分钟" : "\(mins)m"
+            return L10n.tr(
+                zh: "\(mins)分钟",
+                en: "\(mins)m",
+                ja: "\(mins)分"
+            )
         }
     }
 }

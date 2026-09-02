@@ -5,8 +5,6 @@ public struct StrategyPickerView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     @State private var strategyType: Int = 1 // 0: 5H Reset, 1: Daily Repeat, 2: Delay, 3: Custom Date
     @State private var dailyTime: Date = {
         var comp = Calendar.current.dateComponents([.year, .month, .day], from: Date())
@@ -29,14 +27,14 @@ public struct StrategyPickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(isZh ? "触发策略" : "Trigger Schedule", systemImage: "clock.badge.checkmark")
+            Label(L10n.tr(zh: "触发策略", en: "Trigger Schedule", ja: "トリガー条件"), systemImage: "clock.badge.checkmark")
                 .font(.subheadline.bold())
             
             Picker("", selection: $strategyType) {
-                Text(isZh ? "🌅 每日定时" : "🌅 Daily").tag(1)
-                Text(isZh ? "⚡️ 5H解封 (+1m)" : "⚡️ 5H Reset (+1m)").tag(0)
-                Text(isZh ? "⏳ 延时 X 小时" : "⏳ Delay X Hours").tag(2)
-                Text(isZh ? "📅 具体时间" : "📅 Specific Date").tag(3)
+                Text(L10n.tr(zh: "🌅 每日定时", en: "🌅 Daily", ja: "🌅 毎日定時")).tag(1)
+                Text(L10n.tr(zh: "⚡️ 5H解封 (+1m)", en: "⚡️ 5H Reset (+1m)", ja: "⚡️ 5H復活時 (+1分)")).tag(0)
+                Text(L10n.tr(zh: "⏳ 延时 X 小时", en: "⏳ Delay X Hours", ja: "⏳ X時間遅延")).tag(2)
+                Text(L10n.tr(zh: "📅 具体时间", en: "📅 Specific Date", ja: "📅 日時指定")).tag(3)
             }
             .pickerStyle(.segmented)
             
@@ -48,11 +46,15 @@ public struct StrategyPickerView: View {
                             .foregroundStyle(.orange)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(isZh ? "每日循环触发时间：" : "Daily Trigger Time:")
+                            Text(L10n.tr(zh: "每日循环触发时间：", en: "Daily Trigger Time:", ja: "毎日の送信時刻："))
                                 .font(.caption.bold())
-                            Text(isZh ? "每天在该时间自动唤醒 Mac 并发送任务" : "Wakes Mac daily at this time to send message")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                            Text(L10n.tr(
+                                zh: "每天在该时间自动唤醒 Mac 并发送任务",
+                                en: "Wakes Mac daily at this time to send message",
+                                ja: "毎日この時刻にMacを自動起動してメッセージを送信します"
+                            ))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                         }
                         
                         Spacer()
@@ -68,12 +70,20 @@ public struct StrategyPickerView: View {
                         Image(systemName: "hourglass.badge.plus")
                             .foregroundStyle(.orange)
                         if let reset = quotaEngine.currentQuota.resetsAt {
-                            Text(isZh ? "预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)" : "Scheduled at \(formattedTargetResetTime(reset)) (+1m safety buffer)")
-                                .font(.caption)
+                            Text(L10n.tr(
+                                zh: "预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)",
+                                en: "Scheduled at \(formattedTargetResetTime(reset)) (+1m safety buffer)",
+                                ja: "\(formattedTargetResetTime(reset)) に自動送信予定 (+1分バッファ)"
+                            ))
+                            .font(.caption)
                         } else {
-                            Text(isZh ? "当前未限流，将在 5H 额度重置时自动触发 (或在检测到限流后准时解锁)" : "Currently not rate-limited. Will auto-trigger on 5H quota reset")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(L10n.tr(
+                                zh: "当前未限流，将在 5H 额度重置时自动触发 (或在检测到限流后准时解锁)",
+                                en: "Currently not rate-limited. Will auto-trigger on 5H quota reset",
+                                ja: "現在制限なし。5Hクォータ復活時に自動送信されます"
+                            ))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                     }
                     .padding(8)
@@ -81,8 +91,12 @@ public struct StrategyPickerView: View {
                 } else if strategyType == 2 {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text(isZh ? "延时时长: \(String(format: "%.1f", delayHours)) 小时后" : "Delay: \(String(format: "%.1f", delayHours)) hours")
-                                .font(.caption.bold())
+                            Text(L10n.tr(
+                                zh: "延时时长: \(String(format: "%.1f", delayHours)) 小时后",
+                                en: "Delay: \(String(format: "%.1f", delayHours)) hours",
+                                ja: "遅延時間: \(String(format: "%.1f", delayHours)) 時間後"
+                            ))
+                            .font(.caption.bold())
                             Spacer()
                         }
                         Slider(value: $delayHours, in: 0.5...12, step: 0.5)
@@ -91,7 +105,7 @@ public struct StrategyPickerView: View {
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
                 } else if strategyType == 3 {
                     HStack {
-                        Text(isZh ? "指定日期时间:" : "Specific Date & Time:")
+                        Text(L10n.tr(zh: "指定日期时间:", en: "Specific Date & Time:", ja: "指定日時:"))
                             .font(.caption.bold())
                         Spacer()
                         DatePicker("", selection: $customDate)

@@ -4,17 +4,15 @@ public struct ProbeLogView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     public init() {}
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(isZh ? "📡 低频自适应探针日志" : "📡 Adaptive Probe Log")
+                Text(L10n.tr(zh: "📡 低频自适应探针日志", en: "📡 Adaptive Probe Log", ja: "📡 適応型プローブログ"))
                     .font(.headline)
                 Spacer()
-                Text(isZh ? "节能模式运行中" : "Eco Mode Active")
+                Text(L10n.tr(zh: "节能模式运行中", en: "Eco Mode Active", ja: "省電力モード稼働中"))
                     .font(.caption2)
                     .foregroundStyle(.green)
             }
@@ -22,7 +20,7 @@ public struct ProbeLogView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(quotaEngine.probeLogEntries) { entry in
-                        Text(entry.formattedMessage(isZh: isZh))
+                        Text(entry.formattedMessage(lang: loc.currentLanguage))
                             .font(.system(.caption2, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)

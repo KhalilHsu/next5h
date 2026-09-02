@@ -74,8 +74,7 @@ public final class LocalCodexContextReader {
             
             let (isRunning, pid) = checkRunningChatGPTApp()
             
-            let isZh = LocalizationManager.shared.currentLanguage == .zh
-            let emailInfo = decoded.email ?? (isZh ? "Plus 用户" : "Plus User")
+            let emailInfo = decoded.email ?? L10n.tr(zh: "Plus 用户", en: "Plus User", ja: "Plus ユーザー")
             let planInfo = decoded.plan_type?.uppercased() ?? "PLUS"
             
             return QuotaSnapshot(

@@ -7,8 +7,6 @@ public struct JobEditorSheetView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     private let editingJob: ScheduledJob?
     
     @State private var title: String = ""
@@ -89,8 +87,16 @@ public struct JobEditorSheetView: View {
                                     title: L10n.templateQuotaReset,
                                     index: 1,
                                     preset: ScheduledJob(
-                                        title: isZh ? "⚡️ 5H 解封自动发送" : "⚡️ Auto-send on 5H Reset",
-                                        prompt: isZh ? "请帮我检查并 Review 当前项目的最新提交和变更分支" : "Please review the latest commits and changes in the current project",
+                                        title: L10n.tr(
+                                            zh: "⚡️ 5H 解封自动发送",
+                                            en: "⚡️ Auto-send on 5H Reset",
+                                            ja: "⚡️ 5H枠復活時に自動送信"
+                                        ),
+                                        prompt: L10n.tr(
+                                            zh: "请帮我检查并 Review 当前项目的最新提交和变更分支",
+                                            en: "Please review the latest commits and changes in the current project",
+                                            ja: "現在のプロジェクトの最新コミットと変更ブランチをレビューしてください"
+                                        ),
                                         model: catalogService.defaultModel,
                                         reasoningEffort: .medium,
                                         speed: .standard,
@@ -101,11 +107,19 @@ public struct JobEditorSheetView: View {
                                 )
                                 
                                 templateButton(
-                                    title: isZh ? "☕️ 延时 3 小时提醒" : "☕️ 3h Delayed Summary",
+                                    title: L10n.templateDeepQuery,
                                     index: 2,
                                     preset: ScheduledJob(
-                                        title: isZh ? "☕️ 3 小时后自动总结" : "☕️ Auto-summary in 3 Hours",
-                                        prompt: isZh ? "总结今天的编码进展与待办事项" : "Summarize today's coding progress and todo list",
+                                        title: L10n.tr(
+                                            zh: "☕️ 3 小时后自动总结",
+                                            en: "☕️ Auto-summary in 3 Hours",
+                                            ja: "☕️ 3時間後に自動まとめ"
+                                        ),
+                                        prompt: L10n.tr(
+                                            zh: "总结今天的编码进展与待办事项",
+                                            en: "Summarize today's coding progress and todo list",
+                                            ja: "本日のコーディング進捗と残タスクをまとめてください"
+                                        ),
                                         model: catalogService.defaultModel,
                                         reasoningEffort: .low,
                                         speed: .standard,
@@ -135,7 +149,7 @@ public struct JobEditorSheetView: View {
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
                             Spacer()
-                            Text("\(prompt.count) " + (isZh ? "字符" : "chars"))
+                            Text("\(prompt.count) " + L10n.tr(zh: "字符", en: "chars", ja: "文字"))
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -167,9 +181,13 @@ public struct JobEditorSheetView: View {
             
             // 3. 底部操作栏
             HStack {
-                Text(isZh ? "提示: 按 Esc 取消，按 ⌘Return 保存" : "Tip: Press Esc to cancel, ⌘Return to save")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                Text(L10n.tr(
+                    zh: "提示: 按 Esc 取消，按 ⌘Return 保存",
+                    en: "Tip: Press Esc to cancel, ⌘Return to save",
+                    ja: "ヒント: Escでキャンセル、⌘Returnで保存"
+                ))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
                 
                 Spacer()
                 
@@ -185,7 +203,9 @@ public struct JobEditorSheetView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: isExistingJob ? "checkmark.circle.fill" : "paperplane.fill")
-                        Text(isExistingJob ? (isZh ? "保存修改" : "Save Changes") : (isZh ? "加入待发列表" : "Add to Pending"))
+                        Text(isExistingJob
+                             ? L10n.tr(zh: "保存修改", en: "Save Changes", ja: "変更を保存")
+                             : L10n.tr(zh: "加入待发列表", en: "Add to Pending", ja: "送信待ちに追加"))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -251,7 +271,9 @@ public struct JobEditorSheetView: View {
     
     private func saveJob() {
         let safeModel = catalogService.resolveModel(slugOrName: model.slug)
-        let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (isZh ? "待发消息" : "Scheduled Message") : title
+        let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? L10n.tr(zh: "待发消息", en: "Scheduled Message", ja: "定期メッセージ")
+            : title
         
         if let existing = editingJob {
             let updated = ScheduledJob(

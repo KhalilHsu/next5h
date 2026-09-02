@@ -83,7 +83,7 @@ final class Next5hTests: XCTestCase {
         let normalQuota = QuotaSnapshot(usedPercent: 40, resetsAt: future, windowMinutes: 300)
         XCTAssertFalse(normalQuota.isLocked)
         
-        // 验证中英文倒计时与单位
+        // 验证中英文及日文倒计时与单位
         LocalizationManager.shared.setLanguage(.zh)
         XCTAssertTrue(lockedQuota.formattedRemainingTime.contains("小时") && lockedQuota.formattedRemainingTime.contains("分"))
         XCTAssertTrue(lockedQuota.formattedWeeklyRemainingTime.contains("天") && lockedQuota.formattedWeeklyRemainingTime.contains("小时"))
@@ -92,10 +92,15 @@ final class Next5hTests: XCTestCase {
         XCTAssertTrue(lockedQuota.formattedRemainingTime.contains("h") && lockedQuota.formattedRemainingTime.contains("m"))
         XCTAssertTrue(lockedQuota.formattedWeeklyRemainingTime.contains("d") && lockedQuota.formattedWeeklyRemainingTime.contains("h"))
         
+        LocalizationManager.shared.setLanguage(.ja)
+        XCTAssertTrue(lockedQuota.formattedRemainingTime.contains("時間") && lockedQuota.formattedRemainingTime.contains("分"))
+        XCTAssertTrue(lockedQuota.formattedWeeklyRemainingTime.contains("日") && lockedQuota.formattedWeeklyRemainingTime.contains("時間"))
+        
         // 验证 ProbeLogEntry 自适应
-        let entry = ProbeLogEntry(timestamp: Date(), zh: "测试中文日志", en: "Test English log")
-        XCTAssertTrue(entry.formattedMessage(isZh: true).contains("测试中文日志"))
-        XCTAssertTrue(entry.formattedMessage(isZh: false).contains("Test English log"))
+        let entry = ProbeLogEntry(timestamp: Date(), zh: "测试中文日志", en: "Test English log", ja: "テスト日本語ログ")
+        XCTAssertTrue(entry.formattedMessage(lang: .zh).contains("测试中文日志"))
+        XCTAssertTrue(entry.formattedMessage(lang: .en).contains("Test English log"))
+        XCTAssertTrue(entry.formattedMessage(lang: .ja).contains("テスト日本語ログ"))
         
         // 恢复中文
         LocalizationManager.shared.setLanguage(.zh)
@@ -257,6 +262,27 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(SpeedPreference.standard.displayName, "Standard")
         XCTAssertEqual(ProjectScope.noProject.displayName, "No Project (General)")
         XCTAssertEqual(ConversationAction.newSession.displayName, "New Session")
+        
+        loc.setLanguage(.ja)
+        XCTAssertEqual(loc.currentLanguage, .ja)
+        XCTAssertEqual(L10n.tabPending, "送信待ち")
+        XCTAssertEqual(L10n.tabHistory, "送信履歴")
+        XCTAssertEqual(L10n.tabDashboard, "クォータ監視")
+        XCTAssertEqual(L10n.menuQuit, "Next5h を終了")
+        XCTAssertEqual(L10n.queueNewMessage, "新規メッセージ")
+        XCTAssertEqual(DispatchMode.silentAPI.displayName, "バックグラウンドサイレント送信 (推奨)")
+        XCTAssertEqual(ReasoningEffort.low.displayName, "低")
+        XCTAssertEqual(SpeedPreference.standard.displayName, "標準")
+        XCTAssertEqual(ProjectScope.noProject.displayName, "プロジェクトなし (通常会話)")
+        XCTAssertEqual(ConversationAction.newSession.displayName, "新規セッション")
+        
+        // 测试多语拓展机制 (L10n.tr) 及回退机制 (Fallback)
+        let multiTest1 = L10n.tr(zh: "你好", en: "Hello", ja: "こんにちは", fr: "Bonjour")
+        XCTAssertEqual(multiTest1, "こんにちは")
+        
+        // 若缺少当前语言，回退到英语
+        let fallbackTest = L10n.tr(zh: "你好", en: "Hello")
+        XCTAssertEqual(fallbackTest, "Hello")
         
         loc.setLanguage(.zh)
         XCTAssertEqual(loc.currentLanguage, .zh)

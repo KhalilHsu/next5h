@@ -105,8 +105,6 @@ struct QueueJobCardView: View {
     @ObservedObject private var appState = AppState.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    private var isZh: Bool { loc.currentLanguage == .zh }
-    
     private func formatDateTime(_ date: Date) -> String {
         let calendar = Calendar.current
         let formatter = DateFormatter()
@@ -170,7 +168,10 @@ struct QueueJobCardView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary.opacity(0.5))
                 
-                Label(job.dispatchMode == .silentAPI ? (isZh ? "静默 CLI" : "Silent CLI") : (isZh ? "前台 GUI" : "Foreground GUI"), systemImage: "paperplane")
+                Label(job.dispatchMode == .silentAPI
+                      ? L10n.tr(zh: "静默 CLI", en: "Silent CLI", ja: "サイレント CLI")
+                      : L10n.tr(zh: "前台 GUI", en: "Foreground GUI", ja: "前面 GUI"),
+                      systemImage: "paperplane")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 
@@ -181,12 +182,19 @@ struct QueueJobCardView: View {
                         if case .dailyAtTime(let h, let m) = job.strategy {
                             Image(systemName: "repeat")
                                 .font(.system(size: 9))
-                            Text(isZh ? "每天 \(String(format: "%02d:%02d", h, m)) · 下次: \(formatDateTime(sched))"
-                                      : "Daily \(String(format: "%02d:%02d", h, m)) · Next: \(formatDateTime(sched))")
+                            Text(L10n.tr(
+                                zh: "每天 \(String(format: "%02d:%02d", h, m)) · 下次: \(formatDateTime(sched))",
+                                en: "Daily \(String(format: "%02d:%02d", h, m)) · Next: \(formatDateTime(sched))",
+                                ja: "毎日 \(String(format: "%02d:%02d", h, m)) · 次回: \(formatDateTime(sched))"
+                            ))
                         } else {
                             Image(systemName: "clock")
                                 .font(.system(size: 9))
-                            Text(isZh ? "预定: \(formatDateTime(sched))" : "Scheduled: \(formatDateTime(sched))")
+                            Text(L10n.tr(
+                                zh: "预定: \(formatDateTime(sched))",
+                                en: "Scheduled: \(formatDateTime(sched))",
+                                ja: "予定: \(formatDateTime(sched))"
+                            ))
                         }
                     }
                     .font(.caption2.bold())
@@ -226,7 +234,9 @@ struct QueueJobCardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: job.status == .paused ? "arrow.clockwise" : "pause.circle")
-                        Text(job.status == .paused ? (isZh ? "恢复排程" : "Resume") : (isZh ? "暂停" : "Pause"))
+                        Text(job.status == .paused
+                             ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
+                             : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"))
                     }
                     .font(.caption)
                     .foregroundStyle(job.status == .paused ? .green : .secondary)
@@ -262,13 +272,16 @@ struct QueueJobCardView: View {
             Button {
                 appState.openEditJobSheet(job: job)
             } label: {
-                Label(isZh ? "编辑任务..." : "Edit Task...", systemImage: "pencil")
+                Label(L10n.tr(zh: "编辑任务...", en: "Edit Task...", ja: "タスクを編集..."), systemImage: "pencil")
             }
             
             Button {
                 queueManager.togglePause(id: job.id)
             } label: {
-                Label(job.status == .paused ? (isZh ? "恢复排程" : "Resume") : (isZh ? "暂停" : "Pause"), systemImage: job.status == .paused ? "play.fill" : "pause.fill")
+                Label(job.status == .paused
+                      ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
+                      : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"),
+                      systemImage: job.status == .paused ? "play.fill" : "pause.fill")
             }
             
             Divider()
@@ -276,7 +289,7 @@ struct QueueJobCardView: View {
             Button(role: .destructive) {
                 queueManager.deleteJob(id: job.id)
             } label: {
-                Label(isZh ? "删除任务" : "Delete Task", systemImage: "trash")
+                Label(L10n.tr(zh: "删除任务", en: "Delete Task", ja: "タスクを削除"), systemImage: "trash")
             }
         }
     }
