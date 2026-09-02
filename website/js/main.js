@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initInstallTabs();
   initFaqAccordion();
   initMobileMenu();
+  initSmoothScroll();
 });
 
 /* --------------------------------------------------------------------------
@@ -169,6 +170,39 @@ function initMobileMenu() {
   navLinks.querySelectorAll('.nav-link').forEach((link) => {
     link.addEventListener('click', () => {
       navLinks.classList.remove('active');
+    });
+  });
+}
+
+/* --------------------------------------------------------------------------
+   6. Smooth Anchor Scrolling & Clean URL Hash Handling
+   -------------------------------------------------------------------------- */
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (!targetId || targetId === '#') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        history.replaceState(null, null, window.location.pathname);
+        return;
+      }
+
+      const targetEl = document.querySelector(targetId);
+      if (targetEl) {
+        e.preventDefault();
+        const headerOffset = 80;
+        const elementPosition = targetEl.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+
+        // Update URL hash without causing a page jump
+        history.replaceState(null, null, targetId);
+      }
     });
   });
 }
