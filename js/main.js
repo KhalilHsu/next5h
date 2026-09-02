@@ -1,9 +1,10 @@
 /**
  * Next5h Official Website - Main JavaScript
- * Handles theme toggle, clipboard copy with feedback, tab switching, and accordion.
+ * Handles theme toggle, clipboard copy with feedback, tab switching, accordion, smooth scroll, and i18n.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initI18n();
   initThemeToggle();
   initCopyButtons();
   initInstallTabs();
@@ -11,6 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initSmoothScroll();
 });
+
+/* --------------------------------------------------------------------------
+   0. Internationalization (i18n) Initialization & Toggle
+   -------------------------------------------------------------------------- */
+function initI18n() {
+  if (!window.Next5h_i18n) return;
+  const lang = window.Next5h_i18n.getPreferredLanguage();
+  window.Next5h_i18n.applyLanguage(lang);
+
+  const langBtn = document.getElementById('lang-toggle-btn');
+  if (langBtn) {
+    langBtn.addEventListener('click', () => {
+      window.Next5h_i18n.toggleLanguage();
+    });
+  }
+}
 
 /* --------------------------------------------------------------------------
    1. Theme Toggle (Dark / Light with System Preference & Storage)
@@ -56,7 +73,13 @@ function initThemeToggle() {
 /* --------------------------------------------------------------------------
    2. Copy to Clipboard with Feedback & Toast
    -------------------------------------------------------------------------- */
-function showToast(message = '已复制到剪贴板！') {
+function showToast(message) {
+  const currentLang = window.Next5h_i18n ? window.Next5h_i18n.getCurrentLanguage() : 'zh';
+  const defaultMsg = (window.Next5h_i18n && window.Next5h_i18n.translations[currentLang]) 
+    ? window.Next5h_i18n.translations[currentLang]['toast.copied'] 
+    : '已复制到剪贴板！';
+
+  const text = message || defaultMsg;
   let toast = document.getElementById('toast-notice');
   if (!toast) {
     toast = document.createElement('div');
@@ -64,7 +87,7 @@ function showToast(message = '已复制到剪贴板！') {
     toast.className = 'toast-notice';
     document.body.appendChild(toast);
   }
-  toast.innerHTML = `<span>✓</span> <span>${message}</span>`;
+  toast.innerHTML = `<span>✓</span> <span>${text}</span>`;
   toast.classList.add('show');
 
   clearTimeout(window._toastTimeout);
@@ -84,7 +107,12 @@ function initCopyButtons() {
       try {
         await navigator.clipboard.writeText(textToCopy.trim());
         const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<span>✓ 已复制</span>';
+        const currentLang = window.Next5h_i18n ? window.Next5h_i18n.getCurrentLanguage() : 'zh';
+        const copiedLabel = (window.Next5h_i18n && window.Next5h_i18n.translations[currentLang])
+          ? window.Next5h_i18n.translations[currentLang]['hero.copied']
+          : '已复制';
+
+        btn.innerHTML = `<span>✓ ${copiedLabel}</span>`;
         btn.style.borderColor = 'rgba(52, 211, 153, 0.6)';
         showToast();
 
