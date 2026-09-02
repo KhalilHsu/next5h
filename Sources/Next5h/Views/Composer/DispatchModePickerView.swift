@@ -2,6 +2,9 @@ import SwiftUI
 
 public struct DispatchModePickerView: View {
     @Binding public var dispatchMode: DispatchMode
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     public init(dispatchMode: Binding<DispatchMode>) {
         self._dispatchMode = dispatchMode
@@ -9,7 +12,7 @@ public struct DispatchModePickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("发送模式 (Dispatch Mode)", systemImage: "paperplane")
+            Label(isZh ? "发送模式" : "Dispatch Mode", systemImage: "paperplane")
                 .font(.subheadline.bold())
             
             Picker("", selection: $dispatchMode) {

@@ -229,6 +229,11 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(L10n.tabDashboard, "Quota")
         XCTAssertEqual(L10n.menuQuit, "Quit Next5h")
         XCTAssertEqual(L10n.queueNewMessage, "New Message")
+        XCTAssertEqual(DispatchMode.silentAPI.displayName, "Silent Background (Recommended)")
+        XCTAssertEqual(ReasoningEffort.low.displayName, "Low")
+        XCTAssertEqual(SpeedPreference.standard.displayName, "Standard")
+        XCTAssertEqual(ProjectScope.noProject.displayName, "No Project (General)")
+        XCTAssertEqual(ConversationAction.newSession.displayName, "New Session")
         
         loc.setLanguage(.zh)
         XCTAssertEqual(loc.currentLanguage, .zh)
@@ -237,6 +242,11 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(L10n.tabDashboard, "额度看板")
         XCTAssertEqual(L10n.menuQuit, "退出 Next5h")
         XCTAssertEqual(L10n.queueNewMessage, "新建消息")
+        XCTAssertEqual(DispatchMode.silentAPI.displayName, "静默后台发送 (推荐)")
+        XCTAssertEqual(ReasoningEffort.low.displayName, "轻度")
+        XCTAssertEqual(SpeedPreference.standard.displayName, "标准")
+        XCTAssertEqual(ProjectScope.noProject.displayName, "无项目 (常规对话)")
+        XCTAssertEqual(ConversationAction.newSession.displayName, "新建会话")
     }
     
     func testStatusItemRendererMonochromeDualCylinder() {

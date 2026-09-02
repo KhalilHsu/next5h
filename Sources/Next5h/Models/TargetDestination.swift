@@ -10,8 +10,9 @@ public enum ProjectScope: Codable, Equatable, Hashable {
     }
     
     public var displayName: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .noProject: return "无项目 (常规对话)"
+        case .noProject: return isZh ? "无项目 (常规对话)" : "No Project (General)"
         case .specific(_, let name): return name
         }
     }
@@ -27,8 +28,9 @@ public enum ConversationAction: Codable, Equatable, Hashable {
     }
     
     public var displayName: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .newSession: return "新建会话"
+        case .newSession: return isZh ? "新建会话" : "New Session"
         case .existing(_, let title): return title
         }
     }

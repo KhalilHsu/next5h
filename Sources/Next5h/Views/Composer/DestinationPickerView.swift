@@ -3,6 +3,9 @@ import SwiftUI
 public struct DestinationPickerView: View {
     @Binding public var destination: TargetDestination
     @ObservedObject private var sessionRouter = SessionRouter.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     @State private var isSpecificProject: Bool = false
     @State private var selectedProjectId: String = ""
@@ -25,35 +28,35 @@ public struct DestinationPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("发送目标 (Target Destination)", systemImage: "arrow.triangle.branch")
+                Label(isZh ? "发送目标" : "Destination", systemImage: "arrow.triangle.branch")
                     .font(.subheadline.bold())
                 Spacer()
-                Text("无项目会话: \(sessionRouter.noProjectSessions.count) · 本地项目: \(sessionRouter.realCodexProjects.count)")
+                Text(isZh ? "无项目会话: \(sessionRouter.noProjectSessions.count) · 本地项目: \(sessionRouter.realCodexProjects.count)" : "Global: \(sessionRouter.noProjectSessions.count) · Local Projects: \(sessionRouter.realCodexProjects.count)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
             
             // 第一步：选择项目归属
             VStack(alignment: .leading, spacing: 6) {
-                Text("归属范围")
+                Text(isZh ? "归属范围" : "Scope")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                 
                 Picker("", selection: $isSpecificProject) {
-                    Text("🌐 无项目 (常规独立会话)").tag(false)
-                    Text("📁 本地项目 (\(sessionRouter.realCodexProjects.count) 个)").tag(true)
+                    Text(isZh ? "🌐 无项目 (常规独立会话)" : "🌐 No Project (Standalone)").tag(false)
+                    Text(isZh ? "📁 本地项目 (\(sessionRouter.realCodexProjects.count) 个)" : "📁 Local Projects (\(sessionRouter.realCodexProjects.count))").tag(true)
                 }
                 .pickerStyle(.segmented)
                 
                 if isSpecificProject {
                     HStack(spacing: 8) {
-                        Text("所属项目:")
+                        Text(isZh ? "所属项目:" : "Project:")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         
                         Picker("", selection: $selectedProjectId) {
                             ForEach(sessionRouter.realCodexProjects) { proj in
-                                Text("\(proj.name) (\(proj.sessions.count) 会话)").tag(proj.id)
+                                Text("\(proj.name) (\(proj.sessions.count) " + (isZh ? "会话" : "Sessions") + ")").tag(proj.id)
                             }
                         }
                         .pickerStyle(.menu)
@@ -69,26 +72,26 @@ public struct DestinationPickerView: View {
             
             // 第二步：选择会话形式
             VStack(alignment: .leading, spacing: 6) {
-                Text("对话形式")
+                Text(isZh ? "对话形式" : "Conversation Type")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                 
                 Picker("", selection: $isNewSession) {
-                    Text("🆕 新建独立会话").tag(true)
-                    Text("💬 追加到已有会话 (\(availableSessions.count) 条)").tag(false)
+                    Text(isZh ? "🆕 新建独立会话" : "🆕 New Session").tag(true)
+                    Text(isZh ? "💬 追加到已有会话 (\(availableSessions.count) 条)" : "💬 Existing Session (\(availableSessions.count))").tag(false)
                 }
                 .pickerStyle(.segmented)
                 
                 if !isNewSession {
                     VStack(alignment: .leading, spacing: 6) {
                         if availableSessions.isEmpty {
-                            Text("⚠️ 当前分类下暂无可追加的历史会话")
+                            Text(isZh ? "⚠️ 当前分类下暂无可追加的历史会话" : "⚠️ No existing sessions under this category")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, 2)
                         } else {
                             HStack(spacing: 8) {
-                                Text(isSpecificProject ? "项目内部会话:" : "独立历史会话:")
+                                Text(isSpecificProject ? (isZh ? "项目内部会话:" : "Project Session:") : (isZh ? "独立历史会话:" : "Standalone Session:"))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 

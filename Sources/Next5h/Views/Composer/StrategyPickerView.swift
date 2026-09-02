@@ -3,6 +3,9 @@ import SwiftUI
 public struct StrategyPickerView: View {
     @Binding public var strategy: ScheduleStrategy
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     @State private var strategyType: Int = 1 // 0: 5H Reset, 1: Daily Repeat, 2: Delay, 3: Custom Date
     @State private var dailyTime: Date = {
@@ -26,14 +29,14 @@ public struct StrategyPickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("触发策略 (Trigger Strategy)", systemImage: "clock.badge.checkmark")
+            Label(isZh ? "触发策略" : "Trigger Schedule", systemImage: "clock.badge.checkmark")
                 .font(.subheadline.bold())
             
             Picker("", selection: $strategyType) {
-                Text("🌅 每日定时").tag(1)
-                Text("⚡️ 5H解封 (+1m)").tag(0)
-                Text("⏳ 延时 X 小时").tag(2)
-                Text("📅 具体时间").tag(3)
+                Text(isZh ? "🌅 每日定时" : "🌅 Daily").tag(1)
+                Text(isZh ? "⚡️ 5H解封 (+1m)" : "⚡️ 5H Reset (+1m)").tag(0)
+                Text(isZh ? "⏳ 延时 X 小时" : "⏳ Delay X Hours").tag(2)
+                Text(isZh ? "📅 具体时间" : "📅 Specific Date").tag(3)
             }
             .pickerStyle(.segmented)
             
@@ -45,9 +48,9 @@ public struct StrategyPickerView: View {
                             .foregroundStyle(.orange)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("每日循环触发时间：")
+                            Text(isZh ? "每日循环触发时间：" : "Daily Trigger Time:")
                                 .font(.caption.bold())
-                            Text("每天在该时间自动唤醒 Mac 并发送任务")
+                            Text(isZh ? "每天在该时间自动唤醒 Mac 并发送任务" : "Wakes Mac daily at this time to send message")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -65,10 +68,10 @@ public struct StrategyPickerView: View {
                         Image(systemName: "hourglass.badge.plus")
                             .foregroundStyle(.orange)
                         if let reset = quotaEngine.currentQuota.resetsAt {
-                            Text("预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)")
+                            Text(isZh ? "预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)" : "Scheduled at \(formattedTargetResetTime(reset)) (+1m safety buffer)")
                                 .font(.caption)
                         } else {
-                            Text("当前未限流，将在 5H 额度重置时自动触发 (或在检测到限流后准时解锁)")
+                            Text(isZh ? "当前未限流，将在 5H 额度重置时自动触发 (或在检测到限流后准时解锁)" : "Currently not rate-limited. Will auto-trigger on 5H quota reset")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -78,7 +81,7 @@ public struct StrategyPickerView: View {
                 } else if strategyType == 2 {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("延时时长: \(String(format: "%.1f", delayHours)) 小时后")
+                            Text(isZh ? "延时时长: \(String(format: "%.1f", delayHours)) 小时后" : "Delay: \(String(format: "%.1f", delayHours)) hours")
                                 .font(.caption.bold())
                             Spacer()
                         }
@@ -88,7 +91,7 @@ public struct StrategyPickerView: View {
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
                 } else if strategyType == 3 {
                     HStack {
-                        Text("指定日期时间:")
+                        Text(isZh ? "指定日期时间:" : "Specific Date & Time:")
                             .font(.caption.bold())
                         Spacer()
                         DatePicker("", selection: $customDate)

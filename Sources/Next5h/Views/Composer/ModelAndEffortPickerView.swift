@@ -6,6 +6,9 @@ public struct ModelAndEffortPickerView: View {
     @Binding public var speed: SpeedPreference
     
     @ObservedObject private var catalogService = ModelCatalogService.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     public init(
         model: Binding<DynamicCodexModel>,
@@ -20,7 +23,7 @@ public struct ModelAndEffortPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("模型与推理参数 (Codex)", systemImage: "cpu")
+                Label(isZh ? "模型与推理参数" : "Model & Reasoning", systemImage: "cpu")
                     .font(.subheadline.bold())
                 Spacer()
                 
@@ -45,7 +48,7 @@ public struct ModelAndEffortPickerView: View {
                         }
                     } label: {
                         HStack {
-                            Text("选择模型")
+                            Text(isZh ? "选择模型" : "Select Model")
                             Spacer()
                             Text(model.displayName)
                         }
@@ -67,7 +70,7 @@ public struct ModelAndEffortPickerView: View {
                         }
                     } label: {
                         HStack {
-                            Text("推理强度")
+                            Text(isZh ? "推理强度" : "Reasoning Effort")
                             Spacer()
                             Text(reasoningEffort.displayName)
                         }
@@ -90,7 +93,7 @@ public struct ModelAndEffortPickerView: View {
                             }
                         } label: {
                             HStack {
-                                Text("响应速度")
+                                Text(isZh ? "响应速度" : "Response Speed")
                                 Spacer()
                                 Text(speed.displayName)
                             }
@@ -104,7 +107,7 @@ public struct ModelAndEffortPickerView: View {
                         reasoningEffort = .medium
                         speed = .standard
                     } label: {
-                        Label("重置为默认设置", systemImage: "arrow.counterclockwise")
+                        Label(isZh ? "重置为默认设置" : "Reset to Defaults", systemImage: "arrow.counterclockwise")
                     }
                 } label: {
                     HStack(spacing: 6) {
@@ -127,7 +130,7 @@ public struct ModelAndEffortPickerView: View {
             // 当前参数概要说明
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("当前模型")
+                    Text(isZh ? "当前模型" : "Current Model")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(model.displayName)
@@ -138,7 +141,7 @@ public struct ModelAndEffortPickerView: View {
                     .frame(height: 20)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("推理强度")
+                    Text(isZh ? "推理强度" : "Reasoning Effort")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(reasoningEffort.displayName)
@@ -150,7 +153,7 @@ public struct ModelAndEffortPickerView: View {
                         .frame(height: 20)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("响应速度")
+                        Text(isZh ? "响应速度" : "Speed")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                         Text(speed.displayName)

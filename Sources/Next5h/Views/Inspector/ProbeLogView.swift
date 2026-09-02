@@ -2,16 +2,19 @@ import SwiftUI
 
 public struct ProbeLogView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     public init() {}
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("📡 低频自适应探针日志")
+                Text(isZh ? "📡 低频自适应探针日志" : "📡 Adaptive Probe Log")
                     .font(.headline)
                 Spacer()
-                Text("节能模式运行中")
+                Text(isZh ? "节能模式运行中" : "Eco Mode Active")
                     .font(.caption2)
                     .foregroundStyle(.green)
             }

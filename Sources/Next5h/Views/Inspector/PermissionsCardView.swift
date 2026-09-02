@@ -5,13 +5,16 @@ public struct PermissionsCardView: View {
     @State private var hasAccessibility: Bool = true
     @State private var hasPowerRTC: Bool = true
     @State private var showPowerSheet: Bool = false
+    @ObservedObject private var loc = LocalizationManager.shared
+    
+    private var isZh: Bool { loc.currentLanguage == .zh }
     
     public init() {}
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("🛡 系统权限与守护保障")
+                Text(isZh ? "🛡 系统权限与守护保障" : "🛡 System Permissions & Guard")
                     .font(.headline)
                 Spacer()
                 Button {
@@ -19,7 +22,7 @@ public struct PermissionsCardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.shield")
-                        Text("休眠与唤醒支持指南")
+                        Text(isZh ? "休眠与唤醒支持指南" : "Sleep & Wake Guide")
                     }
                     .font(.caption2)
                 }
@@ -28,9 +31,9 @@ public struct PermissionsCardView: View {
             }
             
             VStack(spacing: 8) {
-                PermissionItemRow(title: "系统通知权限 (Notification)", icon: "bell.badge.fill", isGranted: hasNotification)
-                PermissionItemRow(title: "电源管理与 RTC 硬件唤醒", icon: "bolt.batteryblock.fill", isGranted: hasPowerRTC)
-                PermissionItemRow(title: "辅助功能 (Accessibility) 窗口模拟", icon: "hand.tap.fill", isGranted: hasAccessibility)
+                PermissionItemRow(title: isZh ? "系统通知权限" : "System Notifications", icon: "bell.badge.fill", isGranted: hasNotification)
+                PermissionItemRow(title: isZh ? "电源管理与 RTC 硬件唤醒" : "Power Management & RTC Wake", icon: "bolt.batteryblock.fill", isGranted: hasPowerRTC)
+                PermissionItemRow(title: isZh ? "辅助功能窗口模拟" : "Accessibility Window Control", icon: "hand.tap.fill", isGranted: hasAccessibility)
             }
         }
         .padding(14)

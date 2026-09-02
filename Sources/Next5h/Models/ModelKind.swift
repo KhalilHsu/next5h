@@ -10,13 +10,14 @@ public enum ReasoningEffort: String, Codable, CaseIterable, Identifiable {
     
     public var id: String { rawValue }
     
-    /// 100% 对齐官方客户端中文本地化文案
+    /// 100% 对齐官方客户端本地化文案
     public var displayName: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
         switch self {
-        case .low: return "轻度"
-        case .medium: return "中"
-        case .high: return "高"
-        case .xhigh: return "极高"
+        case .low: return isZh ? "轻度" : "Low"
+        case .medium: return isZh ? "中" : "Medium"
+        case .high: return isZh ? "高" : "High"
+        case .xhigh: return isZh ? "极高" : "Extra High"
         case .max: return "Max"
         case .ultra: return "Ultra"
         }
@@ -44,7 +45,13 @@ public enum SpeedPreference: String, Codable, CaseIterable, Identifiable {
     case fast = "快速"
     
     public var id: String { rawValue }
-    public var displayName: String { rawValue }
+    public var displayName: String {
+        let isZh = LocalizationManager.shared.currentLanguage == .zh
+        switch self {
+        case .standard: return isZh ? "标准" : "Standard"
+        case .fast: return isZh ? "快速" : "Fast"
+        }
+    }
 }
 
 public struct DynamicCodexModel: Identifiable, Codable, Equatable, Hashable {
