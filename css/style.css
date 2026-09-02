@@ -164,16 +164,6 @@ body {
   letter-spacing: -0.02em;
 }
 
-.brand-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  background: var(--bg-pill);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--accent-primary);
-}
-
 .nav-actions {
   display: flex;
   align-items: center;
@@ -582,8 +572,5 @@ body {
   .btn-icon {
     width: 34px;
     height: 34px;
-  }
-  .brand-badge {
-    display: none;
   }
 }
