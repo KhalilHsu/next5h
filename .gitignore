@@ -22,3 +22,6 @@ DerivedData/
 *.tmp
 *.swp
 *~
+
+# Release output
+/dist/

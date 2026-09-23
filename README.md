@@ -78,6 +78,7 @@
 next5h/
 ├── Package.swift               # Swift Package 配置
 ├── build_app.sh                # 原生 App 编译与打包脚本
+├── scripts/release.sh          # Developer ID 签名、公证与 DMG 打包发布脚本
 ├── Next5h.app                  # 编译生成的 macOS 原生独立应用程序
 ├── assets/                     # 仓库与应用图资
 │   └── screenshot.png          # 原生运行界面真实截图
@@ -93,6 +94,14 @@ next5h/
 │   └── Views/                  # 原生 SwiftUI 界面 (工作台、队列、仪表盘、状态指示器)
 └── Tests/Next5hTests/          # 自动化单元测试套件
 ```
+
+---
+
+## ⬇️ 下载安装
+
+从 [GitHub Releases](https://github.com/KhalilHsu/next5h/releases/latest) 下载最新的 `Next5h-<版本>.dmg`，打开后把 **Next5h** 拖进 **应用程序** 文件夹即可。安装包为 Universal 通用版本（Apple Silicon + Intel），使用 Developer ID 签名并经过 Apple 公证，每个 Release 都附有 SHA-256 校验值。
+
+维护者使用 `scripts/release.sh` 生成正式 DMG：脚本会构建已提交的 `HEAD`，通过 Xcode 中登录的 Apple ID 使用 Developer ID 证书重新签名、提交公证并装订票据，最后输出 `dist/Next5h-<版本>.dmg` 和 SHA-256 文件。
 
 ---
 
