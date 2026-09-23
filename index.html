@@ -5,263 +5,238 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Next5h - macOS 原生 Codex 额度预定与清晨定时激活工作台</title>
   <meta name="description" content="为 macOS 开发者量身打造的 Codex 5H 窗口自动续航与任务排定工作台。夜间到期硬件唤醒 Mac，通过本地官方 Codex CLI 静默派发任务。">
-  <meta name="color-scheme" content="dark light">
-
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/components.css">
-
-  <!-- Load i18n dictionary -->
-  <script src="js/i18n.js"></script>
-
-  <!-- Prevent Theme & Language FOUC -->
+  <meta name="theme-color" content="#06080c">
+  <link rel="canonical" href="https://khalilhsu.github.io/next5h/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://khalilhsu.github.io/next5h/">
+  <meta property="og:title" content="Next5h — Codex 5H auto-renew & scheduler for macOS">
+  <meta property="og:description" content="Hardware-wakes your Mac on schedule and dispatches queued prompts through the local official Codex CLI the moment your 5H window resets.">
+  <meta property="og:image" content="https://khalilhsu.github.io/next5h/assets/og-icon.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/png" href="assets/app-icon.png">
+  <link rel="apple-touch-icon" href="assets/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20">
+  <script src="js/i18n.js?v=20"></script>
   <script>
-    (function() {
-      // 1. Theme initialization
-      const savedTheme = localStorage.getItem('next5h-theme');
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-      const meta = document.querySelector('meta[name="color-scheme"]');
-      if (meta) meta.content = theme === 'light' ? 'light' : 'dark';
-
-      // 2. Language initialization
+    (function () {
+      var theme = null;
+      try { theme = localStorage.getItem('next5h-theme'); } catch (e) {}
+      if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
       if (window.Next5h_i18n) {
-        const lang = window.Next5h_i18n.getPreferredLanguage();
+        var lang = window.Next5h_i18n.getPreferredLanguage();
         document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
       }
     })();
   </script>
 </head>
 <body>
-  <!-- Ambient Gradient Glow Background -->
-  <div class="bg-ambient-glow"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <!-- Navigation Bar (Clean Minimal Header) -->
-  <header class="navbar">
-    <div class="container navbar-inner">
-      <a href="#" class="nav-brand">
-        <img src="assets/icon.svg" alt="Next5h App Icon" class="brand-icon">
-        <span class="brand-name">Next5h</span>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#top" class="brand">
+        <img src="assets/app-icon.png" alt="" width="30" height="30">
+        <span>Next5h</span>
       </a>
-
-      <div class="nav-actions">
-        <!-- Language Switcher Button -->
-        <button id="lang-toggle-btn" class="btn-icon" aria-label="Switch Language / 切换语言" title="Switch Language / 切换语言">
-          <span style="font-size: 0.8rem; font-weight: 700;" class="lang-btn-text">EN</span>
+      <nav class="nav-links">
+        <a href="#core-values" data-i18n="nav.coreValues">核心价值</a>
+        <a href="#pipeline" data-i18n="nav.pipeline">执行链路</a>
+        <a href="#matrix" data-i18n="nav.matrix">硬件支持矩阵</a>
+        <a href="#faq" data-i18n="nav.faq">常见问题</a>
+      </nav>
+      <div class="nav-tools">
+        <button type="button" class="tool" id="lang-toggle-btn"><span class="lang-btn-text">EN</span></button>
+        <button type="button" class="tool" id="theme-toggle-btn" aria-label="Toggle theme">
+          <svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v2.5M12 20v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M1.5 12H4M20 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+          <svg class="i-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
         </button>
-        <!-- Theme Toggle Button -->
-        <button id="theme-toggle-btn" class="btn-icon" aria-label="切换暗色/亮色主题" title="切换暗色/亮色主题">
-          <span id="theme-icon">☀️</span>
-        </button>
-        <a href="https://github.com/KhalilHsu/next5h" target="_blank" rel="noopener noreferrer" class="btn-icon" aria-label="GitHub 源码仓库" title="GitHub 源码仓库">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-          </svg>
+        <a class="tool" href="https://github.com/KhalilHsu/next5h" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.82 1.19 3.08 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
         </a>
-        <a href="#install" class="btn-primary" data-i18n="nav.installBtn">立即安装</a>
+        <a class="btn btn-cyan btn-sm" href="#install" data-i18n="nav.installBtn">立即安装</a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-pill">
-        <span class="hero-pill-pulse"></span>
-        <span data-i18n="hero.pill">macOS 原生架构 · 榨干 Codex 算力极限</span>
-      </div>
-
-      <h1 class="hero-title" data-i18n-html="hero.title">
-        不要浪费任何一个 5H 额度<br>
-        <span class="hero-title-highlight">提前预定自动发送 · 清晨定时吃满窗口</span>
-      </h1>
-
-      <div class="hero-cta-group" style="margin-top: 36px;">
-        <a href="#install" class="btn-primary" style="padding: 12px 28px; font-size: 1rem;" data-i18n="hero.ctaInstall">
-          <span>⚡️ 开始安装体验</span>
-        </a>
-        <a href="#core-values" class="btn-secondary" style="padding: 12px 24px; font-size: 1rem;" data-i18n="hero.ctaValues">
-          <span>了解 2 大核心玩法 ➔</span>
-        </a>
-      </div>
-
-      <!-- Quick Install Box -->
-      <div class="hero-install-box">
-        <div class="terminal-prompt-label">
-          <span class="terminal-prompt-prefix">$</span>
-          <span id="quick-install-cmd">git clone https://github.com/KhalilHsu/next5h.git &amp;&amp; cd next5h &amp;&amp; ./build_app.sh</span>
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="pill"><span class="pulse" aria-hidden="true"></span><span data-i18n="hero.pill" data-strip>macOS 原生架构 · 榨干 Codex 算力极限</span></p>
+        <h1 class="hero-title" data-i18n-html="hero.title">不要浪费任何一个 5H 额度<br><span class="hero-title-highlight">提前预定自动发送 · 清晨定时吃满窗口</span></h1>
+        <div class="hero-ctas">
+          <a class="btn btn-cyan" href="https://github.com/KhalilHsu/next5h/releases/download/v1.0.0/Next5h-1.0.0.dmg" data-release-link>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
+            <span data-i18n="x.download">下载 macOS 版</span>
+          </a>
+          <a class="btn btn-ghost" href="#core-values"><span data-i18n="hero.ctaValues" data-strip>了解 2 大核心玩法 ➔</span><span aria-hidden="true">→</span></a>
         </div>
-        <button class="terminal-copy-btn" data-copy-target="quick-install-cmd">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        <p class="meta mono"><span data-release-version>v1.0.0</span><i></i><span>Universal</span><i></i><span>macOS 14+</span><i></i><span data-i18n="x.notarized">Apple 公证</span></p>
+      </div>
+
+      <!-- Wake sequence instrument -->
+      <div class="instrument" id="instrument" aria-label="Wake and dispatch sequence">
+        <div class="ins-top mono">
+          <span class="ins-state" id="ins-state"><i></i><span id="ins-state-text">休眠中</span></span>
+          <span class="ins-day" data-i18n="x.daily">每日 07:00</span>
+        </div>
+        <div class="dial">
+          <svg viewBox="0 0 320 320" aria-hidden="true">
+            <defs>
+              <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="var(--cyan)" stop-opacity="0.9"/>
+                <stop offset="1" stop-color="var(--cyan)" stop-opacity="0.2"/>
+              </linearGradient>
+            </defs>
+            <circle class="dial-ring" cx="160" cy="160" r="140"/>
+            <circle class="dial-ring faint" cx="160" cy="160" r="112"/>
+            <g id="ticks"></g>
+            <circle id="window-arc" class="window-arc" cx="160" cy="160" r="126" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 160 160)"/>
+            <line id="hand" class="hand" x1="160" y1="160" x2="160" y2="34"/>
+            <circle class="hand-tip" id="hand-tip" cx="160" cy="34" r="6"/>
+            <circle class="core" cx="160" cy="160" r="54"/>
+            <path class="bolt" d="M166 128 L146 164 H160 L154 192 L176 154 H162 Z"/>
           </svg>
-          <span data-i18n="hero.copyBtn">一键复制</span>
-        </button>
+          <div class="clock mono" id="clock">06:58:40</div>
+        </div>
+        <ol class="seq mono" id="seq">
+          <li data-at="06:59:00"><span class="t">06:59:00</span><span data-i18n="x.seq1">RTC 硬件唤醒 · IOPMSchedulePowerEvent</span></li>
+          <li data-at="06:59:06"><span class="t">06:59:06</span><span data-i18n="x.seq2">Wi-Fi 握手完成 · NetworkMonitor</span></li>
+          <li data-at="07:00:00"><span class="t">07:00:00</span><span data-i18n="x.seq3">codex exec → 发送激活消息「嗨」</span></li>
+          <li data-at="07:00:02"><span class="t">07:00:02</span><span data-i18n="x.seq4">5H 窗口 #1 开始 · 12:00 重置</span></li>
+        </ol>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Core Values Showcase Section -->
-  <section class="section core-values-section" id="core-values">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="core.tag">Core Value Pillars</span>
-        <h2 class="section-title" data-i18n="core.title">解决核心痛点：Next5h 的两大核心价值</h2>
-        <p class="section-desc" data-i18n="core.desc">
-          无需人工值守与死等倒计时，通过原生自动化让每一分订阅价值发挥到极致。
-        </p>
-      </div>
+    <!-- Core values -->
+    <section class="section wrap" id="core-values">
+      <header class="sec-head">
+        <p class="tag mono" data-i18n="core.tag">Core Value Pillars</p>
+        <h2 class="h2" data-i18n="core.title">解决核心痛点：Next5h 的两大核心价值</h2>
+        <p class="sec-desc" data-i18n="core.desc">无需人工值守与死等倒计时，通过原生自动化让每一分订阅价值发挥到极致。</p>
+      </header>
 
-      <div class="core-values-grid">
-        <!-- Pillar 1: Queued Dispatch -->
-        <div class="core-value-card card-blue">
-          <div class="core-value-badge badge-pill-blue" data-i18n="pillar1.badge">⚡️ 核心价值 01 · 预定发送</div>
-          <h3 class="core-value-title" data-i18n-html="pillar1.title">当前无额度？提前排队预定<br>解封秒级自动发送</h3>
-          <p class="core-value-summary" data-i18n="pillar1.summary">
-            构思好了 Prompt 却遇到 5H 额度耗尽？无需守在电脑前死等倒计时。在 Next5h 中随时录入 User Query 加入队列，窗口一旦解封，后台立即静默自动派发。
-          </p>
-
-          <ul class="core-value-features">
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🎯</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item1.title">精准指定 Project 与历史 Session</strong>
-                <p data-i18n="pillar1.item1.desc">不仅支持新立独立会话，更可精确发送到指定项目 (Project) 或追加到历史 Session (Thread)，无缝继承工程上下文。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🧠</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item2.title">自由选择模型与 Thinking (推理) 强度</strong>
-                <p data-i18n="pillar1.item2.desc">支持自由指定模型种类（如 o3-mini、o1、GPT-4o），并自定义 Thinking 推理强度等级 (Low / Medium / High Effort)。</p>
-              </div>
-            </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🔒</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar1.item3.title">锁屏静默执行，零人工值守</strong>
-                <p data-i18n="pillar1.item3.desc">直接调用本地官方 Codex CLI，无需亮屏与输入锁屏密码，到点即发，绝不浪费 1 秒钟可用额度。</p>
-              </div>
-            </li>
+      <!-- Pillar 1 -->
+      <article class="pillar">
+        <div class="pillar-copy">
+          <p class="badge badge-cyan mono"><span>01</span><span data-i18n="pillar1.badge" data-strip>⚡️ 核心价值 01 · 预定发送</span></p>
+          <h3 class="pillar-title" data-i18n-html="pillar1.title">当前无额度？提前排队预定<br>解封秒级自动发送</h3>
+          <p class="pillar-sum" data-i18n="pillar1.summary">构思好了 Prompt 却遇到 5H 额度耗尽？无需守在电脑前死等倒计时。在 Next5h 中随时录入 User Query 加入队列，窗口一旦解封，后台立即静默自动派发。</p>
+          <ul class="items">
+            <li><strong data-i18n="pillar1.item1.title">精准指定 Project 与历史 Session</strong><p data-i18n="pillar1.item1.desc">不仅支持新立独立会话，更可精确发送到指定项目 (Project) 或追加到历史 Session (Thread)，无缝继承工程上下文。</p></li>
+            <li><strong data-i18n="pillar1.item2.title">自由选择模型与 Thinking (推理) 强度</strong><p data-i18n="pillar1.item2.desc">支持自由指定模型种类（如 o3-mini、o1、GPT-4o），并自定义 Thinking 推理强度等级 (Low / Medium / High Effort)。</p></li>
+            <li><strong data-i18n="pillar1.item3.title">锁屏静默执行，零人工值守</strong><p data-i18n="pillar1.item3.desc">直接调用本地官方 Codex CLI，无需亮屏与输入锁屏密码，到点即发，绝不浪费 1 秒钟可用额度。</p></li>
           </ul>
         </div>
 
-        <!-- Pillar 2: Morning Scheduled Wakeup -->
-        <div class="core-value-card card-amber">
-          <div class="core-value-badge badge-pill-amber" data-i18n="pillar2.badge">⏰ 核心价值 02 · 清晨定时激活</div>
-          <h3 class="core-value-title" data-i18n-html="pillar2.title">清晨定时发送“激活对话”<br>白天稳稳吃满 3 个窗口</h3>
-          <p class="core-value-summary" data-i18n="pillar2.summary">
-            普通用户中午才开工，一天只能消耗 1~2 个 5 小时周期。Next5h 在清晨 07:00 通过硬件 RTC 唤醒 Mac 并发送一条激活消息，提前触发首个滑动窗口计时，全天算力直接翻倍！
-          </p>
-
-          <!-- 3-Window Maximization Timeline Widget -->
-          <div class="window-timeline">
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot1.time">07:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot1.label">⚡️ 首窗激活</span>
+        <div class="widget queue" id="queue">
+          <div class="w-head">
+            <span class="mono" data-i18n="x.qTitle">待发队列</span>
+            <button type="button" class="replay mono" id="queue-replay" data-i18n="x.replay">重播</button>
+          </div>
+          <div class="quota">
+            <div class="quota-row mono">
+              <span data-i18n="x.qRemain">5H 剩余</span>
+              <span class="quota-num" id="quota-num">0%</span>
             </div>
-            <div class="timeline-arrow">➔</div>
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot2.time">12:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot2.label">🔄 满血重置</span>
-            </div>
-            <div class="timeline-arrow">➔</div>
-            <div class="timeline-slot">
-              <span class="timeline-time" data-i18n="pillar2.slot3.time">17:00</span>
-              <span class="timeline-label" data-i18n="pillar2.slot3.label">🚀 再次重置</span>
+            <div class="quota-bar"><span id="quota-bar"></span></div>
+            <div class="quota-row mono dim">
+              <span data-i18n="x.qReset">解封倒计时</span>
+              <span id="quota-count">00:00:06</span>
             </div>
           </div>
-
-          <ul class="core-value-features" style="margin-top: 16px;">
-            <li class="core-value-item">
-              <div class="core-value-item-icon">🌅</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item1.title">macOS 硬件级 RTC 芯片唤醒</strong>
-                <p data-i18n-html="pillar2.item1.desc">到点前 60s 调用内核 <code>IOPMSchedulePowerEvent</code> 叫醒电脑并恢复 Wi-Fi，早上到工位时第 1 轮额度早已就绪。</p>
-              </div>
+          <ul class="q-list" id="q-list">
+            <li>
+              <p class="q-prompt" data-i18n="x.q1">重构 PaymentService，并补齐单元测试</p>
+              <p class="q-meta mono"><span>Project · shop-api</span><span>o3 · High</span></p>
+              <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">📈</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item2.title">全天黄金工作时间无缝覆盖</strong>
-                <p data-i18n="pillar2.item2.desc">3 个完整 5 小时窗口完美覆盖 07:00~22:00，告别下午才开启第 1 个窗口的巨大浪费，榨干每一分算力。</p>
-              </div>
+            <li>
+              <p class="q-prompt" data-i18n="x.q2">继续昨晚的迁移：把剩余 3 个表切到新 schema</p>
+              <p class="q-meta mono"><span>Session · #migration</span><span>o1 · Medium</span></p>
+              <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
-            <li class="core-value-item">
-              <div class="core-value-item-icon">☕️</div>
-              <div class="core-value-item-text">
-                <strong data-i18n="pillar2.item3.title">一键开启，每天自动循环</strong>
-                <p data-i18n="pillar2.item3.desc">预置每天 07:00 执行规则，支持自定义激活 Prompt 与目标会话，静默运行无需每天重复设置。</p>
-              </div>
+            <li>
+              <p class="q-prompt" data-i18n="x.q3">为 README 写一段英文安装说明</p>
+              <p class="q-meta mono"><span data-i18n="x.qNew">新建会话</span><span>GPT-4o · Low</span></p>
+              <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
           </ul>
         </div>
-      </div>
-    </div>
-  </section>
+      </article>
 
-  <!-- Technical Pipeline / Workflow Section -->
-  <section class="section workflow-section" id="pipeline">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="pipe.tag">Zero Hassle Pipeline</span>
-        <h2 class="section-title" data-i18n="pipe.title">全链路自动化：从硬件唤醒到无感刷新</h2>
-        <p class="section-desc" data-i18n="pipe.desc">
-          Next5h 深度整合 macOS 底层电源管理接口与官方 Codex CLI，让任务派发在深睡与锁屏状态下也能完美完成。
-        </p>
-      </div>
-
-      <div class="workflow-steps">
-        <div class="step-card">
-          <div class="step-number">01</div>
-          <h3 class="step-title" data-i18n="pipe.s1.title">硬件 RTC 芯片定时唤醒</h3>
-          <p class="step-desc" data-i18n-html="pipe.s1.desc">
-            调用 macOS <code class="tech-tag">IOPMSchedulePowerEvent</code> 内核接口，在任务到点前 60s 硬件叫醒 Mac，并申请电源守护阻止深睡断网。
-          </p>
+      <!-- Pillar 2 -->
+      <article class="pillar pillar-flip">
+        <div class="pillar-copy">
+          <p class="badge badge-amber mono"><span>02</span><span data-i18n="pillar2.badge" data-strip>⏰ 核心价值 02 · 清晨定时激活</span></p>
+          <h3 class="pillar-title" data-i18n-html="pillar2.title">清晨定时发送“激活对话”<br>白天稳稳吃满 3 个窗口</h3>
+          <p class="pillar-sum" data-i18n="pillar2.summary">普通用户中午才开工，一天只能消耗 1~2 个 5 小时周期。Next5h 在清晨 07:00 通过硬件 RTC 唤醒 Mac 并发送一条激活消息，提前触发首个滑动窗口计时，全天算力直接翻倍！</p>
+          <ul class="items">
+            <li><strong data-i18n="pillar2.item1.title">macOS 硬件级 RTC 芯片唤醒</strong><p data-i18n-html="pillar2.item1.desc">到点前 60s 调用内核 <code>IOPMSchedulePowerEvent</code> 叫醒电脑并恢复 Wi-Fi，早上到工位时第 1 轮额度早已就绪。</p></li>
+            <li><strong data-i18n="pillar2.item2.title">全天黄金工作时间无缝覆盖</strong><p data-i18n="pillar2.item2.desc">3 个完整 5 小时窗口完美覆盖 07:00~22:00，告别下午才开启第 1 个窗口的巨大浪费，榨干每一分算力。</p></li>
+            <li><strong data-i18n="pillar2.item3.title">一键开启，每天自动循环</strong><p data-i18n="pillar2.item3.desc">预置每天 07:00 执行规则，支持自定义激活 Prompt 与目标会话，静默运行无需每天重复设置。</p></li>
+          </ul>
         </div>
 
-        <div class="step-card">
-          <div class="step-number">02</div>
-          <h3 class="step-title" data-i18n="pipe.s2.title">Wi-Fi 网络自愈与模型探针</h3>
-          <p class="step-desc" data-i18n-html="pipe.s2.desc">
-            唤醒后，内置 <code class="tech-tag">NetworkMonitor</code> 追踪网络握手，并实时读取官方模型缓存与 5H 额度重置倒计时。
-          </p>
+        <div class="widget day" id="day">
+          <div class="w-head">
+            <span class="mono" data-i18n="x.dTitle">拖动：今天第一条消息几点发？</span>
+            <button type="button" class="replay mono" id="day-reset" data-i18n="x.dReset">用 07:00 激活</button>
+          </div>
+          <div class="day-read">
+            <div>
+              <span class="mono dim" data-i18n="x.dFirst">首条消息</span>
+              <output class="day-time mono" id="day-time">07:00</output>
+            </div>
+            <div class="day-count">
+              <span class="mono dim" data-i18n="x.dCount">22:00 前可用满的窗口</span>
+              <output class="day-num mono" id="day-num">3</output>
+            </div>
+          </div>
+          <div class="ruler" id="ruler">
+            <div class="work-band" aria-hidden="true"></div>
+            <div class="windows" id="windows"></div>
+            <div class="ruler-ticks mono" aria-hidden="true">
+              <span style="--h: 6">06</span><span style="--h: 9">09</span><span style="--h: 12">12</span><span style="--h: 15">15</span><span style="--h: 18">18</span><span style="--h: 21">21</span><span style="--h: 24">24</span>
+            </div>
+          </div>
+          <input type="range" class="day-slider" id="day-slider" min="6" max="14" step="0.5" value="7" aria-labelledby="day-time">
+          <ol class="slots mono">
+            <li><span data-i18n="pillar2.slot1.time">07:00</span><span data-i18n="pillar2.slot1.label" data-strip>⚡️ 首窗激活</span></li>
+            <li><span data-i18n="pillar2.slot2.time">12:00</span><span data-i18n="pillar2.slot2.label" data-strip>🔄 满血重置</span></li>
+            <li><span data-i18n="pillar2.slot3.time">17:00</span><span data-i18n="pillar2.slot3.label" data-strip>🚀 再次重置</span></li>
+          </ol>
         </div>
+      </article>
+    </section>
 
-        <div class="step-card">
-          <div class="step-number">03</div>
-          <h3 class="step-title" data-i18n="pipe.s3.title">本地 Codex CLI 静默派发</h3>
-          <p class="step-desc" data-i18n-html="pipe.s3.desc">
-            直调官方 <code class="tech-tag">ChatGPT.app/.../codex</code> CLI，精准派发至指定 Project 或历史 Session，支持选模型与 Thinking 强度，锁屏免密执行。
-          </p>
-        </div>
+    <!-- Pipeline -->
+    <section class="section wrap" id="pipeline">
+      <header class="sec-head">
+        <p class="tag mono" data-i18n="pipe.tag">Zero Hassle Pipeline</p>
+        <h2 class="h2" data-i18n="pipe.title">全链路自动化：从硬件唤醒到无感刷新</h2>
+        <p class="sec-desc" data-i18n="pipe.desc">Next5h 深度整合 macOS 底层电源管理接口与官方 Codex CLI，让任务派发在深睡与锁屏状态下也能完美完成。</p>
+      </header>
+      <ol class="circuit" id="circuit">
+        <li class="node"><span class="node-no mono">01</span><h3 data-i18n="pipe.s1.title">硬件 RTC 芯片定时唤醒</h3><p data-i18n-html="pipe.s1.desc">调用 macOS <code class="tech-tag">IOPMSchedulePowerEvent</code> 内核接口，在任务到点前 60s 硬件叫醒 Mac，并申请电源守护阻止深睡断网。</p></li>
+        <li class="node"><span class="node-no mono">02</span><h3 data-i18n="pipe.s2.title">Wi-Fi 网络自愈与模型探针</h3><p data-i18n-html="pipe.s2.desc">唤醒后，内置 <code class="tech-tag">NetworkMonitor</code> 追踪网络握手，并实时读取官方模型缓存与 5H 额度重置倒计时。</p></li>
+        <li class="node"><span class="node-no mono">03</span><h3 data-i18n="pipe.s3.title">本地 Codex CLI 静默派发</h3><p data-i18n-html="pipe.s3.desc">直调官方 <code class="tech-tag">ChatGPT.app/.../codex</code> CLI，精准派发至指定 Project 或历史 Session，支持选模型与 Thinking 强度，锁屏免密执行。</p></li>
+        <li class="node"><span class="node-no mono">04</span><h3 data-i18n="pipe.s4.title">codex:// 免重启即时呈现</h3><p data-i18n-html="pipe.s4.desc">同步更新本地 session 会话索引与 SQLite 缓存，通过 <code class="tech-tag">codex://threads/&lt;ID&gt;</code> 深度协议让运行中的桌面端无感刷新。</p></li>
+      </ol>
+    </section>
 
-        <div class="step-card">
-          <div class="step-number">04</div>
-          <h3 class="step-title" data-i18n="pipe.s4.title">codex:// 免重启即时呈现</h3>
-          <p class="step-desc" data-i18n-html="pipe.s4.desc">
-            同步更新本地 session 会话索引与 SQLite 缓存，通过 <code class="tech-tag">codex://threads/&lt;ID&gt;</code> 深度协议让运行中的桌面端无感刷新。
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Hardware Sleep & Compatibility Matrix -->
-  <section class="section" id="matrix">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="matrix.tag">Reliability Matrix</span>
-        <h2 class="section-title" data-i18n="matrix.title">🖥️ Mac 锁屏与休眠状态支持矩阵</h2>
-        <p class="section-desc" data-i18n="matrix.desc">
-          我们对主流 Apple Silicon 与 Intel Mac 设备进行了严格的实机休眠唤醒测试，技术边界透明清晰。
-        </p>
-      </div>
-
-      <div class="matrix-container">
-        <table class="matrix-table">
+    <!-- Matrix -->
+    <section class="section wrap" id="matrix">
+      <header class="sec-head">
+        <p class="tag mono" data-i18n="matrix.tag">Reliability Matrix</p>
+        <h2 class="h2" data-i18n="matrix.title" data-strip>🖥️ Mac 锁屏与休眠状态支持矩阵</h2>
+        <p class="sec-desc" data-i18n="matrix.desc">我们对主流 Apple Silicon 与 Intel Mac 设备进行了严格的实机休眠唤醒测试，技术边界透明清晰。</p>
+      </header>
+      <div class="matrix">
+        <table>
           <thead>
             <tr>
               <th data-i18n="matrix.th.form">硬件形态</th>
@@ -272,86 +247,41 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td data-i18n-html="matrix.r1.form"><strong>Mac mini / Studio / Pro</strong><br><small style="color: var(--text-muted);">桌面台式机</small></td>
-              <td data-i18n="matrix.r1.state">锁屏 / 显示器关闭</td>
-              <td data-i18n="matrix.r1.power">始终连接电源</td>
-              <td><span class="status-pill status-green" data-i18n="matrix.r1.status">🟢 100% 完美发送</span></td>
-              <td data-i18n="matrix.r1.note">系统内核常驻运行，静默 CLI 模式无需屏幕解锁与前台焦点。</td>
-            </tr>
-            <tr>
-              <td data-i18n-html="matrix.r2.form"><strong>Mac mini / Studio / Pro</strong><br><small style="color: var(--text-muted);">桌面台式机</small></td>
-              <td data-i18n="matrix.r2.state">系统深度休眠 (Sleep)</td>
-              <td data-i18n="matrix.r2.power">始终连接电源</td>
-              <td><span class="status-pill status-green" data-i18n="matrix.r2.status">🟢 自动唤醒并发送</span></td>
-              <td data-i18n="matrix.r2.note">到点前 60s RTC 硬件叫醒 Mac，Wi-Fi 握手完成后静默执行。</td>
-            </tr>
-            <tr>
-              <td data-i18n-html="matrix.r3.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td>
-              <td data-i18n="matrix.r3.state">开盖 + 锁屏 / 休眠</td>
-              <td data-i18n="matrix.r3.power">连接电源 (推荐)</td>
-              <td><span class="status-pill status-green" data-i18n="matrix.r3.status">🟢 100% 稳定发送</span></td>
-              <td data-i18n="matrix.r3.note">RTC 正常硬件唤醒，AC 供电下网络即时恢复并派发任务。</td>
-            </tr>
-            <tr>
-              <td data-i18n-html="matrix.r4.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td>
-              <td data-i18n="matrix.r4.state">开盖 + 锁屏 / 休眠</td>
-              <td data-i18n="matrix.r4.power">纯电池供电</td>
-              <td><span class="status-pill status-yellow" data-i18n="matrix.r4.status">🟡 支持 (电量敏感)</span></td>
-              <td data-i18n="matrix.r4.note">支持 RTC 唤醒，但极端低电量或省电模式可能延迟 Wi-Fi 握手，建议插电。</td>
-            </tr>
-            <tr>
-              <td data-i18n-html="matrix.r5.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td>
-              <td data-i18n-html="matrix.r5.state">合盖 + 接外接显示器<br><small style="color: var(--text-muted);">(Clamshell 合盖模式)</small></td>
-              <td data-i18n="matrix.r5.power">连接电源</td>
-              <td><span class="status-pill status-green" data-i18n="matrix.r5.status">🟢 100% 稳定发送</span></td>
-              <td data-i18n="matrix.r5.note">macOS 官方合盖台式机工作模式，插电即可全速常驻运行。</td>
-            </tr>
-            <tr>
-              <td data-i18n-html="matrix.r6.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td>
-              <td data-i18n-html="matrix.r6.state">纯合盖 (Lid Closed)<br><small style="color: var(--text-muted);">(无外接显示器，放桌上/包里)</small></td>
-              <td data-i18n="matrix.r6.power">任意供电</td>
-              <td><span class="status-pill status-red" data-i18n="matrix.r6.status">🔴 无法保证 (系统限制)</span></td>
-              <td data-i18n-html="matrix.r6.note"><strong>macOS 固件安全限制</strong>：Apple Silicon 在纯合盖时为防包内过热，会切断 Wi-Fi 并强制深睡。</td>
-            </tr>
+            <tr><td data-i18n-html="matrix.r1.form"></td><td data-i18n="matrix.r1.state"></td><td data-i18n="matrix.r1.power"></td><td><span class="st st-green" data-i18n="matrix.r1.status" data-strip></span></td><td data-i18n="matrix.r1.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r2.form"></td><td data-i18n="matrix.r2.state"></td><td data-i18n="matrix.r2.power"></td><td><span class="st st-green" data-i18n="matrix.r2.status" data-strip></span></td><td data-i18n="matrix.r2.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r3.form"></td><td data-i18n="matrix.r3.state"></td><td data-i18n="matrix.r3.power"></td><td><span class="st st-green" data-i18n="matrix.r3.status" data-strip></span></td><td data-i18n="matrix.r3.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r4.form"></td><td data-i18n="matrix.r4.state"></td><td data-i18n="matrix.r4.power"></td><td><span class="st st-amber" data-i18n="matrix.r4.status" data-strip></span></td><td data-i18n="matrix.r4.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r5.form"></td><td data-i18n-html="matrix.r5.state"></td><td data-i18n="matrix.r5.power"></td><td><span class="st st-green" data-i18n="matrix.r5.status" data-strip></span></td><td data-i18n="matrix.r5.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r6.form"></td><td data-i18n-html="matrix.r6.state"></td><td data-i18n="matrix.r6.power"></td><td><span class="st st-red" data-i18n="matrix.r6.status" data-strip></span></td><td data-i18n-html="matrix.r6.note"></td></tr>
           </tbody>
         </table>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Installation Guide Section -->
-  <section class="section" id="install">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="install.tag">Quick Installation</span>
-        <h2 class="section-title" data-i18n="install.title">快速安装部署 Next5h</h2>
-        <p class="section-desc" data-i18n="install.desc">
-          我们为不同偏好的开发者提供了灵活的安装方式，从一键终端脚本到源码编译，开箱即用。
-        </p>
-      </div>
-
-      <div class="install-card">
-        <div class="install-tabs">
-          <button class="install-tab-btn active" data-tab="tab-source">
-            <span data-i18n="install.tabSource">💻 源码克隆与编译构建 (推荐)</span>
-          </button>
-          <button class="install-tab-btn" data-tab="tab-script">
-            <span data-i18n="install.tabScript">⚡️ 一键终端安装脚本</span>
-          </button>
+    <!-- Install -->
+    <section class="section wrap" id="install">
+      <header class="sec-head">
+        <p class="tag mono" data-i18n="install.tag">Quick Installation</p>
+        <h2 class="h2" data-i18n="install.title">快速安装部署 Next5h</h2>
+        <p class="sec-desc" data-i18n="install.desc">我们为不同偏好的开发者提供了灵活的安装方式，从一键终端脚本到源码编译，开箱即用。</p>
+      </header>
+      <div class="install">
+        <div class="dl">
+          <img src="assets/app-icon.png" alt="" width="72" height="72">
+          <p class="dl-name">Next5h <span data-release-version>v1.0.0</span></p>
+          <p class="dl-meta mono"><span data-i18n="x.dlMeta">Universal · macOS 14 及以上</span> · <span data-release-size>DMG</span></p>
+          <a class="btn btn-cyan" href="https://github.com/KhalilHsu/next5h/releases/download/v1.0.0/Next5h-1.0.0.dmg" data-release-link>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
+            <span data-i18n="x.dlBtn">下载 DMG</span>
+          </a>
+          <p class="dl-note" data-i18n="x.dlNote">Developer ID 签名并经 Apple 公证。打开后把 Next5h 拖进「应用程序」即可。</p>
         </div>
-
-        <!-- Tab 1: Source Build -->
-        <div class="install-content-panel active" id="tab-source">
-          <p style="color: var(--text-secondary); margin-bottom: 12px; font-size: 0.94rem;" data-i18n-html="install.sourceDesc">
-            使用 Swift Package Manager 原生 Release 编译模式，打包生成标准独立的 <code>Next5h.app</code>：
-          </p>
-          <div class="code-block">
-            <button class="code-copy-btn" data-copy-target="code-source">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <span data-i18n="hero.copyBtn">复制</span>
-            </button>
-            <pre><code id="code-source"># 1. 克隆项目仓库
+        <div class="src">
+          <p class="src-title" data-i18n="install.tabSource" data-strip>💻 源码克隆与编译构建 (推荐)</p>
+          <p class="src-desc" data-i18n-html="install.sourceDesc">使用 Swift Package Manager 原生 Release 编译模式，打包生成标准独立的 <code>Next5h.app</code>：</p>
+          <div class="code">
+            <button type="button" class="copy mono" data-copy-target="code-source"><span data-i18n="hero.copyBtn">复制</span></button>
+<pre><code id="code-source"># 1. 克隆项目仓库
 git clone https://github.com/KhalilHsu/next5h.git
 cd next5h
 
@@ -361,164 +291,65 @@ cd next5h
 # 3. 运行并体验应用
 open Next5h.app</code></pre>
           </div>
-          <p style="color: var(--text-muted); font-size: 0.85rem;" data-i18n-html="install.sourceHint">
-            💡 提示：如需安装至系统应用程序目录，可直接执行：<code>cp -R Next5h.app /Applications/</code>
-          </p>
-        </div>
-
-        <!-- Tab 2: One-liner Script -->
-        <div class="install-content-panel" id="tab-script">
-          <p style="color: var(--text-secondary); margin-bottom: 12px; font-size: 0.94rem;" data-i18n="install.scriptDesc">
-            复制以下单行命令粘贴到 macOS 终端，将自动克隆最新代码、编译 Release 版本并启动：
-          </p>
-          <div class="code-block">
-            <button class="code-copy-btn" data-copy-target="code-script">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <span data-i18n="hero.copyBtn">复制</span>
-            </button>
-            <pre><code id="code-script">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/KhalilHsu/next5h/main/build_app.sh)"</code></pre>
-          </div>
+          <p class="src-hint" data-i18n-html="install.sourceHint" data-strip>💡 提示：如需安装至系统应用程序目录，可直接执行：<code>cp -R Next5h.app /Applications/</code></p>
         </div>
       </div>
-
-      <!-- Checklist & First Run Steps -->
-      <div class="checklist-group" style="max-width: 860px; margin: 36px auto 0 auto;">
-        <div class="checklist-item">
-          <div class="checklist-icon">✓</div>
-          <div>
-            <div class="checklist-title" data-i18n="install.check1.title">前置环境核验</div>
-            <div class="checklist-desc" data-i18n-html="install.check1.desc">macOS 14.0 (Sonoma) 或更高版本；已安装官方 ChatGPT macOS 客户端 (<code>/Applications/ChatGPT.app</code>)。</div>
-          </div>
-        </div>
-
-        <div class="checklist-item">
-          <div class="checklist-icon">✓</div>
-          <div>
-            <div class="checklist-title" data-i18n="install.check2.title">预置 07:00 任务自动生效</div>
-            <div class="checklist-desc" data-i18n="install.check2.desc">初次启动自动创建每天 07:00 执行的预置任务，并注册硬件 RTC 闹钟，点击卡片可随时就地编辑。</div>
-          </div>
-        </div>
+      <div class="checks">
+        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check1.title">前置环境核验</strong><p data-i18n-html="install.check1.desc">macOS 14.0 (Sonoma) 或更高版本；已安装官方 ChatGPT macOS 客户端 (<code>/Applications/ChatGPT.app</code>)。</p></div></div>
+        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check2.title">预置 07:00 任务自动生效</strong><p data-i18n="install.check2.desc">初次启动自动创建每天 07:00 执行的预置任务，并注册硬件 RTC 闹钟，点击卡片可随时就地编辑。</p></div></div>
       </div>
-    </div>
-  </section>
+      <figure class="shot">
+        <img src="assets/screenshot.png" alt="Next5h" width="1024" height="910" loading="lazy">
+      </figure>
+    </section>
 
-  <!-- FAQ Section -->
-  <section class="section" id="faq">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag" data-i18n="faq.tag">Got Questions?</span>
-        <h2 class="section-title" data-i18n="faq.title">常见问题解答 (FAQ)</h2>
-        <p class="section-desc" data-i18n="faq.desc">关于安全性、唤醒机制与日常使用的常见疑问。</p>
+    <!-- FAQ -->
+    <section class="section wrap" id="faq">
+      <header class="sec-head">
+        <p class="tag mono" data-i18n="faq.tag">Got Questions?</p>
+        <h2 class="h2" data-i18n="faq.title">常见问题解答 (FAQ)</h2>
+        <p class="sec-desc" data-i18n="faq.desc">关于安全性、唤醒机制与日常使用的常见疑问。</p>
+      </header>
+      <div class="faq">
+        <details><summary><span data-i18n="faq.q1"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a1"></div></details>
+        <details><summary><span data-i18n="faq.q2"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a2"></div></details>
+        <details><summary><span data-i18n="faq.q3"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a3"></div></details>
+        <details><summary><span data-i18n="faq.q4"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a4"></div></details>
+        <details><summary><span data-i18n="faq.q5"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a5"></div></details>
+        <details><summary><span data-i18n="faq.q6"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a6"></div></details>
       </div>
+    </section>
+  </main>
 
-      <div class="faq-list">
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q1">什么是“预定发送”？它可以发送到指定的 Project 或历史 Session 吗？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a1">
-            <strong>完全支持。</strong> 当当前 5 小时窗口额度耗尽时，你无需守在电脑前死等倒计时。直接在 Next5h 中录入想发送的 User Query 加入预定队列。5H 窗口解封瞬间，后台会自动静默派发。你可以选择创建全新独立会话，也可以精准指定发送到 ChatGPT 中已有的 <strong>Project (项目)</strong> 或追加到<strong>历史 Session (会话 Thread)</strong>，无缝延续代码上下文；并可自由指定模型与 Thinking 推理强度。
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q2">为什么要“清晨定时发送”？它是如何帮我白天吃满 3 个 5 小时窗口的？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a2">
-            <strong>核心在于抢先触发滑动窗口计时。</strong> 官方 5H 额度是从你当天发送“第一条消息”起才开始倒计时 5 小时。如果上午 11 点才发首条消息，一天最多只能消耗 1~2 轮。Next5h 每天清晨 07:00 通过硬件 RTC 唤醒电脑发送激活对话，提前开启第 1 个窗口。这样 <strong>07:00 (窗口1) ➔ 12:00 (窗口2) ➔ 17:00 (窗口3)</strong>，在白天正常工作时间内可以稳稳用满 3 个完整周期，算力价值彻底翻倍！
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q3">Next5h 是否需要配置 OpenAI API Key 或输入账号密码？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a3">
-            <strong>完全不需要。</strong> Next5h 直接复用官方 ChatGPT macOS 客户端的本地登录认证态，底层调用 <code>/Applications/ChatGPT.app/Contents/Resources/codex</code> 官方原生二进制，零额外密钥依赖，安全纯粹。
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q4">电脑在休眠锁屏状态下，真的能自己唤醒并执行吗？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a4">
-            <strong>可以。</strong> Next5h 基于 macOS 核心服务中的 <code>IOPMSchedulePowerEvent</code> 硬件内核接口，提前 60 秒叫醒 Mac，随后申请 <code>PreventUserIdleSystemSleep</code> 阻止系统深睡，通过静默 CLI 模式执行，无需输入锁屏密码。
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q5">MacBook 笔记本合盖放进背包里能自动唤醒吗？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a5">
-            <strong>纯合盖且无外接显示器状态下不建议。</strong> Apple Silicon 固件为了防止电脑在密闭背包中过热造成硬件损害，在纯合盖时会彻底关闭 Wi-Fi 芯片并进入强制低功耗。如果是接了外接显示器并插电的合盖状态（Clamshell Mode），则 100% 完美支持。
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question">
-            <span data-i18n="faq.q6">任务执行完毕后，ChatGPT 桌面客户端需要手动重启才能看到吗？</span>
-            <span class="faq-toggle-icon">+</span>
-          </button>
-          <div class="faq-answer" data-i18n-html="faq.a6">
-            <strong>免重启即时呈现。</strong> Next5h 会自动更新 <code>~/.codex/session_index.jsonl</code> 与 SQLite 缓存，并通过 <code>codex://threads/&lt;ID&gt;</code> 深度协议直接通知运行中的 ChatGPT 客户端无感刷新会话树。
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-brand-info">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="assets/icon.svg" alt="Next5h Icon" style="width: 28px; height: 28px; border-radius: 6px;">
-            <span style="font-weight: 700; font-size: 1.1rem;">Next5h</span>
-          </div>
-          <p data-i18n="footer.desc">
-            macOS 原生 Codex 5H 自动续航与任务排定工作台。专为 macOS 开发者打造，释放算力极限。
-          </p>
+    <div class="wrap footer-top">
+      <div class="footer-brand">
+        <div class="brand"><img src="assets/app-icon.png" alt="" width="28" height="28"><span>Next5h</span></div>
+        <p data-i18n="footer.desc">macOS 原生 Codex 5H 自动续航与任务排定工作台。专为 macOS 开发者打造，释放算力极限。</p>
+      </div>
+      <div class="footer-cols">
+        <div>
+          <h4 data-i18n="footer.product">产品</h4>
+          <a href="#core-values" data-i18n="nav.coreValues">核心价值</a>
+          <a href="#pipeline" data-i18n="nav.pipeline">执行链路</a>
+          <a href="#matrix" data-i18n="nav.matrix">硬件支持矩阵</a>
+          <a href="#install" data-i18n="nav.install">安装指南</a>
         </div>
-
-        <div class="footer-links-group">
-          <div class="footer-col">
-            <h4 data-i18n="footer.product">产品</h4>
-            <ul>
-              <li><a href="#core-values" data-i18n="nav.coreValues">核心价值</a></li>
-              <li><a href="#pipeline" data-i18n="nav.pipeline">执行链路</a></li>
-              <li><a href="#matrix" data-i18n="nav.matrix">硬件支持矩阵</a></li>
-              <li><a href="#install" data-i18n="nav.install">安装指南</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-col">
-            <h4 data-i18n="footer.resources">资源</h4>
-            <ul>
-              <li><a href="https://github.com/KhalilHsu/next5h" target="_blank" rel="noopener noreferrer" data-i18n="footer.repo">GitHub 仓库</a></li>
-              <li><a href="https://github.com/KhalilHsu/next5h/blob/main/README.md" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs">开发文档</a></li>
-              <li><a href="https://github.com/KhalilHsu/next5h/issues" target="_blank" rel="noopener noreferrer" data-i18n="footer.feedback">反馈与建议</a></li>
-            </ul>
-          </div>
+        <div>
+          <h4 data-i18n="footer.resources">资源</h4>
+          <a href="https://github.com/KhalilHsu/next5h" target="_blank" rel="noopener noreferrer" data-i18n="footer.repo">GitHub 仓库</a>
+          <a href="https://github.com/KhalilHsu/next5h/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+          <a href="https://github.com/KhalilHsu/next5h/blob/main/README.md" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs">开发文档</a>
+          <a href="https://github.com/KhalilHsu/next5h/issues" target="_blank" rel="noopener noreferrer" data-i18n="footer.feedback">反馈与建议</a>
         </div>
       </div>
-
-      <div class="footer-bottom">
-        <div data-i18n="footer.license">Next5h · 遵循 MIT 开源协议</div>
-        <div data-i18n="footer.craft">Crafted with precision for macOS developers</div>
-      </div>
+    </div>
+    <div class="wrap footer-bottom mono">
+      <span data-i18n="footer.license">Next5h · 遵循 MIT 开源协议</span>
+      <span data-i18n="footer.craft">Crafted with precision for macOS developers</span>
     </div>
   </footer>
 
-  <!-- Main JavaScript -->
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=20"></script>
 </body>
 </html>
