@@ -36,7 +36,7 @@ cat << 'PLIST' > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundleExecutable</key>
     <string>Next5h</string>
     <key>CFBundleIdentifier</key>
-    <string>com.anti.next5h</string>
+    <string>com.khalil.next5h</string>
     <key>CFBundleName</key>
     <string>Next5h</string>
     <key>CFBundleDisplayName</key>
@@ -46,9 +46,9 @@ cat << 'PLIST' > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.1</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
