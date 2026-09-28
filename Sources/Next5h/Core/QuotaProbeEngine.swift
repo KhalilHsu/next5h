@@ -66,6 +66,7 @@ public final class QuotaProbeEngine: ObservableObject {
             ja: "プローブエンジン起動、~/.codex/auth.json から公式APIに接続中..."
         )
         startSecondTicker()
+        CodexSessionWatcher.shared.start()
         refreshNow()
     }
     
@@ -164,18 +165,7 @@ public final class QuotaProbeEngine: ObservableObject {
     private func rescheduleTimer() {
         timer?.invalidate()
         
-        let remaining = currentQuota.remainingSeconds
-        let interval: TimeInterval
-        
-        if remaining > 3600 {
-            interval = 1800 // 30 分钟
-        } else if remaining > 600 {
-            interval = 600  // 10 分钟
-        } else if remaining > 0 {
-            interval = 180  // 3 分钟
-        } else {
-            interval = 1800 // 30 分钟
-        }
+        let interval = CodexSessionWatcher.shared.currentRecommendedInterval
         
         timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
             self?.refreshNow()

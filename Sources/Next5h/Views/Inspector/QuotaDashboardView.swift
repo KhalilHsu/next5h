@@ -58,6 +58,19 @@ public struct QuotaDashboardView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
+                    
+                    if CodexSessionWatcher.shared.isInActiveBurstWindow {
+                        HStack(spacing: 4) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 9))
+                            Text(L10n.tr(zh: "活跃追踪中 (1分钟/次)", en: "Active Tracking (1m)", ja: "高頻度追跡中 (1分)"))
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.orange.opacity(0.15)))
+                        .foregroundStyle(.orange)
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)

@@ -385,5 +385,18 @@ final class Next5hTests: XCTestCase {
             qm.saveJobs()
         }
     }
+    
+    func testCodexSessionWatcherActivityDetection() {
+        let watcher = CodexSessionWatcher.shared
+        let snapshot = watcher.queryActivitySnapshot()
+        
+        // 验证能正常查询本地 thread_history_1.sqlite
+        XCTAssertGreaterThanOrEqual(snapshot.latestStartedAt, 0)
+        XCTAssertGreaterThanOrEqual(snapshot.latestCompletedAt, 0)
+        
+        // 验证建议间隔：若处于活跃窗口返回 60s，否则返回 <= 300s
+        let interval = watcher.currentRecommendedInterval
+        XCTAssertTrue(interval == 60 || interval == 180 || interval == 300, "建议轮询间隔应为 60s、180s 或 300s，当前为: \(interval)")
+    }
 }
 
