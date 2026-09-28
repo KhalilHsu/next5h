@@ -8,7 +8,7 @@ struct Next5hApp: App {
     
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
     }
 }
