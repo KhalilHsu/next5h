@@ -3,25 +3,25 @@ import AppKit
 import Combine
 
 @main
-struct Next5hApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
-    var body: some Scene {
-        Settings {
-            SettingsView()
-        }
-    }
-}
-
 public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    private static var sharedDelegate: AppDelegate?
     private static let fixedContentWidth: CGFloat = 720
 
     private var statusItem: NSStatusItem?
     private var mainWindow: NSWindow?
     private var cancellables = Set<AnyCancellable>()
     
+    public static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        sharedDelegate = delegate
+        app.delegate = delegate
+        app.run()
+    }
+    
     public func applicationDidFinishLaunching(_ notification: Notification) {
         setupAppIcon()
+        setupMainMenu()
         NotificationService.shared.requestAuthorization()
         
         // 1. 初始化顶部状态栏 Item
@@ -54,6 +54,41 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
            let image = NSImage(contentsOfFile: iconPath) {
             NSApplication.shared.applicationIconImage = image
         }
+    }
+    
+    private func setupMainMenu() {
+        let mainMenu = NSMenu()
+        
+        // 1. App 菜单 (无任何多余 Settings 入口)
+        let appMenuItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: L10n.menuOpenWorkbench, action: #selector(handleOpenMainWindow), keyEquivalent: "o")
+        appMenu.addItem(NSMenuItem.separator())
+        appMenu.addItem(withTitle: L10n.menuQuit, action: #selector(handleQuit), keyEquivalent: "q")
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+        
+        // 2. 编辑菜单 (支持常规快捷键 ⌘C, ⌘V, ⌘X, ⌘A, ⌘Z)
+        let editMenuItem = NSMenuItem()
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        editMenu.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+        editMenu.addItem(NSMenuItem.separator())
+        editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editMenuItem.submenu = editMenu
+        mainMenu.addItem(editMenuItem)
+        
+        // 3. 窗口菜单 (支持 ⌘W 关闭收起窗口)
+        let windowMenuItem = NSMenuItem()
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowMenuItem.submenu = windowMenu
+        mainMenu.addItem(windowMenuItem)
+        
+        NSApp.mainMenu = mainMenu
     }
     
     private func setupStatusItem() {
