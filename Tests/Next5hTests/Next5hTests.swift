@@ -330,6 +330,25 @@ final class Next5hTests: XCTestCase {
         }
     }
     
+    func testCodexCLIExecutableInvocation() {
+        guard let path = SilentAPIDispatcher.resolveCodexBinaryPath() else {
+            XCTFail("应当成功获取 Codex CLI 路径")
+            return
+        }
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: path)
+        proc.arguments = ["--version"]
+        let pipe = Pipe()
+        proc.standardOutput = pipe
+        proc.standardError = pipe
+        XCTAssertNoThrow(try proc.run(), "调用解析出的 Codex CLI 不应再抛出 Cocoa Error 260")
+        proc.waitUntilExit()
+        XCTAssertEqual(proc.terminationStatus, 0)
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let out = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertTrue(out.contains("codex-cli"), "输出应包含 codex-cli 版本信息")
+    }
+    
     func testDailyJobAutoRescheduleOnFailure() {
         let qm = JobQueueManager.shared
         
