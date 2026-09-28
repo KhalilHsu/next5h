@@ -2,23 +2,81 @@ import Foundation
 import AppKit
 import SQLite3
 
-public final class SilentAPIDispatcher {
+public final class SilentAPIDispatcher: @unchecked Sendable {
     public static let shared = SilentAPIDispatcher()
     
-    private let codexBinaryPath = "/Applications/ChatGPT.app/Contents/Resources/codex"
-    
     private init() {}
+    
+    /// 动态解析可用的 Codex CLI 路径（兼容新版 ChatGPT.app 目录结构及历史版本）
+    public static func resolveCodexBinaryPath() -> String? {
+        let fileManager = FileManager.default
+        let home = fileManager.homeDirectoryForCurrentUser
+        
+        let candidatePaths = [
+            // 1. ChatGPT.app 最新版本结构 (codex-cli/bin/codex 包装脚本)
+            "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex",
+            // 2. ChatGPT.app 最新版本结构 (CodexCLI.app 原生 Mach-O 二进制)
+            "/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            // 3. ChatGPT.app 旧版本路径 (Contents/Resources/codex)
+            "/Applications/ChatGPT.app/Contents/Resources/codex",
+            // 4. 用户目录下的 Applications
+            home.appendingPathComponent("Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex").path,
+            home.appendingPathComponent("Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex").path,
+            home.appendingPathComponent("Applications/ChatGPT.app/Contents/Resources/codex").path,
+            // 5. 系统标准路径 / Homebrew 路径
+            "/usr/local/bin/codex",
+            "/opt/homebrew/bin/codex"
+        ]
+        
+        for path in candidatePaths {
+            if fileManager.isExecutableFile(atPath: path) {
+                return path
+            }
+        }
+        
+        // 6. 从 PATH 环境变量检索
+        if let pathEnv = ProcessInfo.processInfo.environment["PATH"] {
+            for dir in pathEnv.split(separator: ":") {
+                let candidate = URL(fileURLWithPath: String(dir)).appendingPathComponent("codex").path
+                if fileManager.isExecutableFile(atPath: candidate) {
+                    return candidate
+                }
+            }
+        }
+        
+        return nil
+    }
     
     /// 执行后台真实静默发送至本地 Codex 引擎
     public func dispatch(job: ScheduledJob) async throws -> Bool {
         print("🚀 [SilentAPIDispatcher] 正在调用本地 Codex CLI 发送任务: \(job.title)")
         
+        guard let codexBinary = Self.resolveCodexBinaryPath() else {
+            let errorMsg = L10n.tr(
+                zh: "未找到本地 Codex CLI 执行文件（请确认官方 ChatGPT.app 是否安装完整）",
+                en: "Codex CLI binary not found. Please verify ChatGPT.app is installed.",
+                ja: "Codex CLI バイナリが見つかりません。ChatGPT.app が正しくインストールされているか確認してください"
+            )
+            print("❌ [SilentAPIDispatcher] \(errorMsg)")
+            throw NSError(domain: "SilentAPIDispatcher", code: 404, userInfo: [NSLocalizedDescriptionKey: errorMsg])
+        }
+        
         let modelSlug = job.model.slug
         let effortRaw = job.reasoningEffort.rawValue
         
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: codexBinaryPath)
+        process.executableURL = URL(fileURLWithPath: codexBinary)
         process.standardInput = FileHandle.nullDevice
+        
+        // 补充 GUI 环境可能缺失的 PATH
+        var environment = ProcessInfo.processInfo.environment
+        let defaultPath = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        if let existingPath = environment["PATH"], !existingPath.isEmpty {
+            environment["PATH"] = "\(existingPath):\(defaultPath)"
+        } else {
+            environment["PATH"] = defaultPath
+        }
+        process.environment = environment
         
         var arguments: [String] = []
         var targetThreadId: String? = nil
@@ -64,6 +122,9 @@ public final class SilentAPIDispatcher {
         process.standardOutput = pipe
         process.standardError = pipe
         
+        let jobPrompt = job.prompt
+        let jobTitle = job.title
+        
         do {
             try process.run()
             
@@ -78,11 +139,12 @@ public final class SilentAPIDispatcher {
                         var resolvedSessionId = targetThreadId
                         
                         // 1. 提取新建会话的 session id 并同步到 Codex GUI 的 session_index.jsonl 和 state_5.sqlite
-                        if let match = output.range(of: "session id: ([0-9a-f\\-]+)", options: .regularExpression) {
-                            let rawMatch = String(output[match])
-                            let sessionId = rawMatch.replacingOccurrences(of: "session id: ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+                        if let regex = try? NSRegularExpression(pattern: #"(?:session\s*id|thread\s*id)[:\s]+([0-9a-f\-]+)"#, options: .caseInsensitive),
+                           let match = regex.firstMatch(in: output, range: NSRange(output.startIndex..., in: output)),
+                           let idRange = Range(match.range(at: 1), in: output) {
+                            let sessionId = String(output[idRange])
                             resolvedSessionId = sessionId
-                            self.syncNewSessionToCodexGUI(sessionId: sessionId, title: job.prompt)
+                            self.syncNewSessionToCodexGUI(sessionId: sessionId, title: jobPrompt)
                         }
                         
                         // 2. 关键：通过官方 Deep Link (codex://threads/<ID>) 实时通知并刷新正在运行的 Codex 客户端窗口，免重启
@@ -98,7 +160,7 @@ public final class SilentAPIDispatcher {
                         
                         NotificationService.shared.sendNotification(
                             title: "🎯 Next5h 任务派发成功",
-                            body: "已成功向本地 Codex 派发任务：\(job.title)"
+                            body: "已成功向本地 Codex 派发任务：\(jobTitle)"
                         )
                         continuation.resume(returning: true)
                     } else {

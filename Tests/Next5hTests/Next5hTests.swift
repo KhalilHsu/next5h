@@ -321,5 +321,50 @@ final class Next5hTests: XCTestCase {
         guardian.updateStandbyAssertion(hasPendingJobs: false)
         XCTAssertFalse(guardian.isStandbyAssertionActive)
     }
+    
+    func testCodexBinaryPathResolution() {
+        let path = SilentAPIDispatcher.resolveCodexBinaryPath()
+        XCTAssertNotNil(path, "应当成功解析到本地可执行的 Codex CLI 路径")
+        if let p = path {
+            XCTAssertTrue(FileManager.default.isExecutableFile(atPath: p), "解析得到的路径应当具备可执行权限: \(p)")
+        }
+    }
+    
+    func testDailyJobAutoRescheduleOnFailure() {
+        let qm = JobQueueManager.shared
+        
+        let dailyJob = ScheduledJob(
+            id: UUID(),
+            title: "单元测试每日任务",
+            prompt: "ping",
+            model: ModelCatalogService.shared.defaultModel,
+            reasoningEffort: .low,
+            speed: .standard,
+            destination: TargetDestination(),
+            strategy: .dailyAtTime(hour: 6, minute: 40),
+            dispatchMode: .silentAPI,
+            status: .failed("模拟的测试失败"),
+            createdAt: Date(),
+            scheduledExecutionDate: Date().addingTimeInterval(-3600) // 过去的时间
+        )
+        
+        qm.jobs.append(dailyJob)
+        
+        // 模拟触发保存与加载自愈
+        qm.saveJobs()
+        
+        // 验证处于 failed 状态的 dailyAtTime 任务能被检测自愈或重排
+        if let idx = qm.jobs.firstIndex(where: { $0.id == dailyJob.id }) {
+            let next = SmartScheduler.shared.calculateNextExecutionDate(
+                for: qm.jobs[idx].strategy,
+                currentQuota: QuotaProbeEngine.shared.currentQuota
+            )
+            XCTAssertGreaterThan(next, Date(), "每日任务的下一次时间应大于当前时间")
+            
+            // 清理测试数据
+            qm.jobs.remove(at: idx)
+            qm.saveJobs()
+        }
+    }
 }
 

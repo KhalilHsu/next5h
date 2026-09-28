@@ -19,7 +19,7 @@
 ### 二、 核心架构模块审查总结
 
 1. **真实派发与 Codex 联动 (`SilentAPIDispatcher`)**：
-   * 采用官方 `/Applications/ChatGPT.app/Contents/Resources/codex` CLI 真实执行；
+   * 动态自适应检测并采用官方内置 Codex CLI 真实执行；
    * 新建独立会话 (`exec`) 与追加到已有会话 (`queue`) 100% 打通；
    * 自动同步 `~/.codex/session_index.jsonl` 与 `state_5.sqlite`，并通过 `codex://threads/<ID>` 实现运行中客户端**免重启即时刷新**。
 2. **动态模型目录服务 (`ModelCatalogService`)**：

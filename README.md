@@ -15,7 +15,7 @@
 ## ✨ 核心特性与技术亮点
 
 1. 🚀 **真实本地 Codex CLI 原生链路**
-   * 底层直接调用官方 `/Applications/ChatGPT.app/Contents/Resources/codex` CLI 执行，**无任何第三方中转或 Hook 注入**；
+   * 底层动态自适应检测并调用官方 Codex CLI（支持最新版 ChatGPT.app 的 `codex-cli/bin/codex` 及历史版本路径），**无任何第三方中转或 Hook 注入**；
    * 完美支持**新建独立项目会话** (`codex exec`) 与**追加到已有历史会话** (`codex queue`)；
    * 通过 `codex://threads/<ID>` 深度链接协议，实现运行中的官方 Codex 桌面窗口**免重启即时刷新**。
 
@@ -109,7 +109,7 @@ next5h/
 
 ### 1. 系统要求
 * macOS 14.0 (Sonoma) 或更高版本
-* 已安装官方 ChatGPT.app (包含 `/Applications/ChatGPT.app/Contents/Resources/codex` CLI)
+* 已安装官方 ChatGPT.app (包含内置 Codex CLI)
 * Swift 5.9+ / Xcode Command Line Tools
 
 ### 2. 构建与运行命令

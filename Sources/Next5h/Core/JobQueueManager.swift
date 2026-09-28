@@ -31,7 +31,17 @@ public final class JobQueueManager: ObservableObject {
                     return nil // 已完成任务已在历史留痕中，队列中不再保留
                 }
                 var j = job
-                if j.status == .pending {
+                // 每日定时任务自愈：若任务为每日定时任务且处于 failed 状态，自动恢复为 pending 并重置为下次执行时间
+                if case .dailyAtTime = j.strategy, case .failed = j.status {
+                    let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
+                        for: j.strategy,
+                        currentQuota: QuotaProbeEngine.shared.currentQuota
+                    )
+                    j.scheduledExecutionDate = nextDate
+                    j.status = .pending
+                    _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
+                    print("🔄 [JobQueueManager] 检测到每日任务 [\(j.title)] 处于失败状态，已自动重置排程至: \(nextDate)")
+                } else if j.status == .pending {
                     if j.scheduledExecutionDate == nil || j.scheduledExecutionDate! <= Date() {
                         let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
                             for: j.strategy,
@@ -240,7 +250,19 @@ public final class JobQueueManager: ObservableObject {
                             print("✅ [JobQueueManager] 一次性任务 [\(removedJob.title)] 派发成功，已移出待发调度队列")
                         }
                     } else {
-                        self.jobs[idx].status = .failed(finalError ?? "发送失败或发生网络异常")
+                        if case .dailyAtTime = self.jobs[idx].strategy {
+                            // 每日重复任务即使单次派发异常（已在消息历史中记录），也自动排定明天同一时刻执行，防止单次错误造成周期无限停滞
+                            let tomorrowDate = SmartScheduler.shared.calculateNextExecutionDate(
+                                for: self.jobs[idx].strategy,
+                                currentQuota: QuotaProbeEngine.shared.currentQuota
+                            )
+                            self.jobs[idx].scheduledExecutionDate = tomorrowDate
+                            self.jobs[idx].status = .pending
+                            _ = PowerGuardian.shared.scheduleWakeEvent(at: tomorrowDate)
+                            print("⚠️ [JobQueueManager] 每日任务 [\(self.jobs[idx].title)] 派发异常，已自动排定下一次执行时间: \(tomorrowDate)")
+                        } else {
+                            self.jobs[idx].status = .failed(finalError ?? "发送失败或发生网络异常")
+                        }
                     }
                     self.saveJobs()
                 }
