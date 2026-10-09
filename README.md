@@ -8,7 +8,7 @@ Static product and installation site for [Next5h](https://khalilhsu.github.io/ne
 - `css/style.css`: responsive layout and light/dark themes.
 - `js/i18n.js`: Chinese/English copy and language selection.
 - `js/main.js`: theme, language, illustrative demos, copying and latest-release links.
-- `assets/`: icons and the actual app screenshot, supplied October 9, 2026.
+- `assets/`: app and social preview icons. App screenshots are kept in the main-branch README only.
 
 ## Preview and publish
 
@@ -17,7 +17,7 @@ python3 -m http.server 8000
 # Open http://localhost:8000
 ```
 
-GitHub Pages publishes the root of `gh-pages`. Push this branch to update the site. Screenshots and feature descriptions follow current `main`; download links resolve to the latest published release, which may lag behind source.
+GitHub Pages publishes the root of `gh-pages`. Push this branch to update the site. Feature descriptions follow current `main`; download links resolve to the latest published release, which may lag behind source.
 
 ---
 
@@ -29,6 +29,6 @@ GitHub Pages publishes the root of `gh-pages`. Push this branch to update the si
 - `css/style.css`：样式与响应式布局。
 - `js/i18n.js`：中英文案和语言选择。
 - `js/main.js`：语言、主题、示意动画、复制与最新发布链接。
-- `assets/`：图标及 2026-10-09 用户提供的真实应用截图。
+- `assets/`：应用与分享预览图标。应用截图只保留在 main 分支的 README。
 
-在分支根目录运行 `python3 -m http.server 8000` 后打开 `http://localhost:8000` 预览。推送 `gh-pages` 后由 GitHub Pages 发布根目录。截图与特性以最新 `main` 为准；下载按钮对应正式 Release，可能晚于源码。交互动画是排程示意，不代表账号额度承诺。
+在分支根目录运行 `python3 -m http.server 8000` 后打开 `http://localhost:8000` 预览。推送 `gh-pages` 后由 GitHub Pages 发布根目录。特性以最新 `main` 为准；下载按钮对应正式 Release，可能晚于源码。交互动画是排程示意，不代表账号额度承诺。
