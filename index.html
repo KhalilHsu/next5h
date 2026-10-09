@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Next5h - macOS 原生 Codex 额度预定与清晨定时激活工作台</title>
-  <meta name="description" content="为 macOS 开发者量身打造的 Codex 5H 窗口自动续航与任务排定工作台。夜间到期硬件唤醒 Mac，通过本地官方 Codex CLI 静默派发任务。">
+  <title>Next5h - macOS 原生 Codex 消息排定与额度看板</title>
+  <meta name="description" content="排定 Codex 消息、在 5H 额度恢复后继续已有会话，查看额度和派发历史。支持独立开关与晨间 6 Luna / low 预置。">
   <meta name="theme-color" content="#06080c">
   <link rel="canonical" href="https://khalilhsu.github.io/next5h/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://khalilhsu.github.io/next5h/">
-  <meta property="og:title" content="Next5h — Codex 5H auto-renew & scheduler for macOS">
-  <meta property="og:description" content="Hardware-wakes your Mac on schedule and dispatches queued prompts through the local official Codex CLI the moment your 5H window resets.">
+  <meta property="og:title" content="Next5h - Native Codex Scheduling & Quota Dashboard for macOS">
+  <meta property="og:description" content="Schedule Codex prompts, continue existing conversations after a 5H reset, and track quota and delivery history. Includes per-schedule switches and a 6 Luna / low morning preset.">
   <meta property="og:image" content="https://khalilhsu.github.io/next5h/assets/og-icon.png">
   <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/png" href="assets/app-icon.png">
@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20">
-  <script src="js/i18n.js?v=20"></script>
+  <link rel="stylesheet" href="css/style.css?v=21">
+  <script src="js/i18n.js?v=21"></script>
   <script>
     (function () {
       var theme = null;
@@ -65,14 +65,14 @@
     <!-- Hero -->
     <section class="hero wrap">
       <div class="hero-copy">
-        <p class="pill"><span class="pulse" aria-hidden="true"></span><span data-i18n="hero.pill" data-strip>macOS 原生架构 · 榨干 Codex 算力极限</span></p>
-        <h1 class="hero-title" data-i18n-html="hero.title">不要浪费任何一个 5H 额度<br><span class="hero-title-highlight">提前预定自动发送 · 清晨定时吃满窗口</span></h1>
+        <p class="pill"><span class="pulse" aria-hidden="true"></span><span data-i18n="hero.pill" data-strip>macOS 原生 · 本地官方 Codex CLI</span></p>
+        <h1 class="hero-title" data-i18n-html="hero.title">把下一步任务提前安排好<br><span class="hero-title-highlight">额度恢复后继续 · 每天按时开始</span></h1>
         <div class="hero-ctas">
           <a class="btn btn-cyan" href="https://github.com/KhalilHsu/next5h/releases/download/v1.0.1/Next5h-1.0.1.dmg" data-release-link>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
             <span data-i18n="x.download">下载 macOS 版</span>
           </a>
-          <a class="btn btn-ghost" href="#core-values"><span data-i18n="hero.ctaValues" data-strip>了解 2 大核心玩法 ➔</span><span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#core-values"><span data-i18n="hero.ctaValues" data-strip>了解两种使用方式</span><span aria-hidden="true">→</span></a>
         </div>
         <p class="meta mono"><span data-release-version>v1.0.1</span><i></i><span>Universal</span><i></i><span>macOS 14+</span><i></i><span data-i18n="x.notarized">Apple 公证</span></p>
       </div>
@@ -80,7 +80,7 @@
       <!-- Wake sequence instrument -->
       <div class="instrument" id="instrument" aria-label="Wake and dispatch sequence">
         <div class="ins-top mono">
-          <span class="ins-state" id="ins-state"><i></i><span id="ins-state-text">休眠中</span></span>
+          <span class="ins-state" id="ins-state"><i></i><span id="ins-state-text">待命中</span></span>
           <span class="ins-day" data-i18n="x.daily">每日 07:00</span>
         </div>
         <div class="dial">
@@ -103,10 +103,10 @@
           <div class="clock mono" id="clock">06:58:40</div>
         </div>
         <ol class="seq mono" id="seq">
-          <li data-at="06:59:00"><span class="t">06:59:00</span><span data-i18n="x.seq1">RTC 硬件唤醒 · IOPMSchedulePowerEvent</span></li>
-          <li data-at="06:59:06"><span class="t">06:59:06</span><span data-i18n="x.seq2">Wi-Fi 握手完成 · NetworkMonitor</span></li>
-          <li data-at="07:00:00"><span class="t">07:00:00</span><span data-i18n="x.seq3">codex exec → 发送激活消息「嗨」</span></li>
-          <li data-at="07:00:02"><span class="t">07:00:02</span><span data-i18n="x.seq4">5H 窗口 #1 开始 · 12:00 重置</span></li>
+          <li data-at="06:59:00"><span class="t">06:59:00</span><span data-i18n="x.seq1">待命守护 · 尝试注册唤醒</span></li>
+          <li data-at="06:59:06"><span class="t">06:59:06</span><span data-i18n="x.seq2">检查网络连接</span></li>
+          <li data-at="07:00:00"><span class="t">07:00:00</span><span data-i18n="x.seq3">codex exec → 6 Luna / low ·「嗨」</span></li>
+          <li data-at="07:00:02"><span class="t">07:00:02</span><span data-i18n="x.seq4">记录派发结果 · 以实际额度为准</span></li>
         </ol>
       </div>
     </section>
@@ -115,26 +115,26 @@
     <section class="section wrap" id="core-values">
       <header class="sec-head">
         <p class="tag mono" data-i18n="core.tag">Core Value Pillars</p>
-        <h2 class="h2" data-i18n="core.title">解决核心痛点：Next5h 的两大核心价值</h2>
-        <p class="sec-desc" data-i18n="core.desc">无需人工值守与死等倒计时，通过原生自动化让每一分订阅价值发挥到极致。</p>
+        <h2 class="h2" data-i18n="core.title">提前排定任务，减少等待</h2>
+        <p class="sec-desc" data-i18n="core.desc">预定消息、选择会话与模型，并随时关闭某一项自动派发。</p>
       </header>
 
       <!-- Pillar 1 -->
       <article class="pillar">
         <div class="pillar-copy">
           <p class="badge badge-cyan mono"><span>01</span><span data-i18n="pillar1.badge" data-strip>⚡️ 核心价值 01 · 预定发送</span></p>
-          <h3 class="pillar-title" data-i18n-html="pillar1.title">当前无额度？提前排队预定<br>解封秒级自动发送</h3>
-          <p class="pillar-sum" data-i18n="pillar1.summary">构思好了 Prompt 却遇到 5H 额度耗尽？无需守在电脑前死等倒计时。在 Next5h 中随时录入 User Query 加入队列，窗口一旦解封，后台立即静默自动派发。</p>
+          <h3 class="pillar-title" data-i18n-html="pillar1.title">当前额度已耗尽？<br>排定恢复后的下一步</h3>
+          <p class="pillar-sum" data-i18n="pillar1.summary">选择「5H 解封后」即可按官方重置时间加 1 分钟缓冲排定消息。内置「继续任务」预置默认关闭：先选中要继续的已有会话，再开启。尚未获取重置时间时，该预置会等待额度数据。</p>
           <ul class="items">
-            <li><strong data-i18n="pillar1.item1.title">精准指定 Project 与历史 Session</strong><p data-i18n="pillar1.item1.desc">不仅支持新立独立会话，更可精确发送到指定项目 (Project) 或追加到历史 Session (Thread)，无缝继承工程上下文。</p></li>
-            <li><strong data-i18n="pillar1.item2.title">自由选择模型与 Thinking (推理) 强度</strong><p data-i18n="pillar1.item2.desc">支持自由指定模型种类（如 o3-mini、o1、GPT-4o），并自定义 Thinking 推理强度等级 (Low / Medium / High Effort)。</p></li>
-            <li><strong data-i18n="pillar1.item3.title">锁屏静默执行，零人工值守</strong><p data-i18n="pillar1.item3.desc">直接调用本地官方 Codex CLI，无需亮屏与输入锁屏密码，到点即发，绝不浪费 1 秒钟可用额度。</p></li>
+            <li><strong data-i18n="pillar1.item1.title">新建会话或继续已有上下文</strong><p data-i18n="pillar1.item1.desc">支持无项目和本地项目；可新建会话，也可把消息追加到指定的已有会话。</p></li>
+            <li><strong data-i18n="pillar1.item2.title">模型与推理参数跟随本地目录</strong><p data-i18n="pillar1.item2.desc">从本地 Codex 模型缓存读取可用模型及推理强度、速度选项。晨间预置使用 6 Luna / low；续任务预置使用当前默认模型 / medium。</p></li>
+            <li><strong data-i18n="pillar1.item3.title">独立开关与后台派发</strong><p data-i18n="pillar1.item3.desc">关闭开关保留内容和参数，重新开启会重算执行时间。后台 CLI 可在锁屏、系统仍运行且网络可用时发送。</p></li>
           </ul>
         </div>
 
         <div class="widget queue" id="queue">
           <div class="w-head">
-            <span class="mono" data-i18n="x.qTitle">待发队列</span>
+            <span class="mono" data-i18n="x.qTitle">待发队列 · 压缩时间演示</span>
             <button type="button" class="replay mono" id="queue-replay" data-i18n="x.replay">重播</button>
           </div>
           <div class="quota">
@@ -151,17 +151,17 @@
           <ul class="q-list" id="q-list">
             <li>
               <p class="q-prompt" data-i18n="x.q1">重构 PaymentService，并补齐单元测试</p>
-              <p class="q-meta mono"><span>Project · shop-api</span><span>o3 · High</span></p>
+              <p class="q-meta mono"><span>Project · shop-api</span><span>6.1 Sol · High</span></p>
               <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
             <li>
               <p class="q-prompt" data-i18n="x.q2">继续昨晚的迁移：把剩余 3 个表切到新 schema</p>
-              <p class="q-meta mono"><span>Session · #migration</span><span>o1 · Medium</span></p>
+              <p class="q-meta mono"><span>Session · #migration</span><span>6.1 Sol · Medium</span></p>
               <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
             <li>
               <p class="q-prompt" data-i18n="x.q3">为 README 写一段英文安装说明</p>
-              <p class="q-meta mono"><span data-i18n="x.qNew">新建会话</span><span>GPT-4o · Low</span></p>
+              <p class="q-meta mono"><span data-i18n="x.qNew">新建会话</span><span>6 Luna · Low</span></p>
               <span class="q-state mono" data-i18n="x.qWaiting">等待解封</span>
             </li>
           </ul>
@@ -172,19 +172,19 @@
       <article class="pillar pillar-flip">
         <div class="pillar-copy">
           <p class="badge badge-amber mono"><span>02</span><span data-i18n="pillar2.badge" data-strip>⏰ 核心价值 02 · 清晨定时激活</span></p>
-          <h3 class="pillar-title" data-i18n-html="pillar2.title">清晨定时发送“激活对话”<br>白天稳稳吃满 3 个窗口</h3>
-          <p class="pillar-sum" data-i18n="pillar2.summary">普通用户中午才开工，一天只能消耗 1~2 个 5 小时周期。Next5h 在清晨 07:00 通过硬件 RTC 唤醒 Mac 并发送一条激活消息，提前触发首个滑动窗口计时，全天算力直接翻倍！</p>
+          <h3 class="pillar-title" data-i18n-html="pillar2.title">清晨先发一条问候<br>按你的节奏开始一天</h3>
+          <p class="pillar-sum" data-i18n="pillar2.summary">首次启动预置每日本地时间 07:00 的「嗨」，使用 6 Luna、低推理强度、标准速度，无项目新建会话并在后台发送。已有任务升级后保留保存的配置。</p>
           <ul class="items">
-            <li><strong data-i18n="pillar2.item1.title">macOS 硬件级 RTC 芯片唤醒</strong><p data-i18n-html="pillar2.item1.desc">到点前 60s 调用内核 <code>IOPMSchedulePowerEvent</code> 叫醒电脑并恢复 Wi-Fi，早上到工位时第 1 轮额度早已就绪。</p></li>
-            <li><strong data-i18n="pillar2.item2.title">全天黄金工作时间无缝覆盖</strong><p data-i18n="pillar2.item2.desc">3 个完整 5 小时窗口完美覆盖 07:00~22:00，告别下午才开启第 1 个窗口的巨大浪费，榨干每一分算力。</p></li>
-            <li><strong data-i18n="pillar2.item3.title">一键开启，每天自动循环</strong><p data-i18n="pillar2.item3.desc">预置每天 07:00 执行规则，支持自定义激活 Prompt 与目标会话，静默运行无需每天重复设置。</p></li>
+            <li><strong data-i18n="pillar2.item1.title">息屏待命与唤醒尝试</strong><p data-i18n-html="pillar2.item1.desc">有已排定任务时申请防空闲休眠，并尝试提前 60 秒注册唤醒事件。深度休眠唤醒取决于系统权限和实际设备状态。</p></li>
+            <li><strong data-i18n="pillar2.item2.title">按时间安排，不改变官方额度</strong><p data-i18n="pillar2.item2.desc">右侧时间轴演示连续 5 小时的时间分段，仅作排程示意。实际额度、窗口和重置时间以账号返回的数据为准。</p></li>
+            <li><strong data-i18n="pillar2.item3.title">每天循环，随时修改或关闭</strong><p data-i18n="pillar2.item3.desc">支持改时间、内容、目标和模型；也可选择延时或指定日期时间。无需每天重复创建。</p></li>
           </ul>
         </div>
 
         <div class="widget day" id="day">
           <div class="w-head">
-            <span class="mono" data-i18n="x.dTitle">拖动：今天第一条消息几点发？</span>
-            <button type="button" class="replay mono" id="day-reset" data-i18n="x.dReset">用 07:00 激活</button>
+            <span class="mono" data-i18n="x.dTitle">排程示意：第一条消息何时发送？</span>
+            <button type="button" class="replay mono" id="day-reset" data-i18n="x.dReset">设为 07:00</button>
           </div>
           <div class="day-read">
             <div>
@@ -192,7 +192,7 @@
               <output class="day-time mono" id="day-time">07:00</output>
             </div>
             <div class="day-count">
-              <span class="mono dim" data-i18n="x.dCount">22:00 前可用满的窗口</span>
+              <span class="mono dim" data-i18n="x.dCount">22:00 前的完整 5H 分段（示意）</span>
               <output class="day-num mono" id="day-num">3</output>
             </div>
           </div>
@@ -205,9 +205,9 @@
           </div>
           <input type="range" class="day-slider" id="day-slider" min="6" max="14" step="0.5" value="7" aria-labelledby="day-time">
           <ol class="slots mono">
-            <li><span data-i18n="pillar2.slot1.time">07:00</span><span data-i18n="pillar2.slot1.label" data-strip>⚡️ 首窗激活</span></li>
-            <li><span data-i18n="pillar2.slot2.time">12:00</span><span data-i18n="pillar2.slot2.label" data-strip>🔄 满血重置</span></li>
-            <li><span data-i18n="pillar2.slot3.time">17:00</span><span data-i18n="pillar2.slot3.label" data-strip>🚀 再次重置</span></li>
+            <li><span data-i18n="pillar2.slot1.time">07:00</span><span data-i18n="pillar2.slot1.label" data-strip>晨间发送</span></li>
+            <li><span data-i18n="pillar2.slot2.time">12:00</span><span data-i18n="pillar2.slot2.label" data-strip>5H 时间分段示意</span></li>
+            <li><span data-i18n="pillar2.slot3.time">17:00</span><span data-i18n="pillar2.slot3.label" data-strip>下一分段示意</span></li>
           </ol>
         </div>
       </article>
@@ -216,15 +216,15 @@
     <!-- Pipeline -->
     <section class="section wrap" id="pipeline">
       <header class="sec-head">
-        <p class="tag mono" data-i18n="pipe.tag">Zero Hassle Pipeline</p>
-        <h2 class="h2" data-i18n="pipe.title">全链路自动化：从硬件唤醒到无感刷新</h2>
-        <p class="sec-desc" data-i18n="pipe.desc">Next5h 深度整合 macOS 底层电源管理接口与官方 Codex CLI，让任务派发在深睡与锁屏状态下也能完美完成。</p>
+        <p class="tag mono" data-i18n="pipe.tag">Local Delivery Pipeline</p>
+        <h2 class="h2" data-i18n="pipe.title">从排程到本地会话</h2>
+        <p class="sec-desc" data-i18n="pipe.desc">四种触发策略连接本地 CLI 与桌面会话；执行仍需要应用运行、认证有效和网络可用。</p>
       </header>
       <ol class="circuit" id="circuit">
-        <li class="node"><span class="node-no mono">01</span><h3 data-i18n="pipe.s1.title">硬件 RTC 芯片定时唤醒</h3><p data-i18n-html="pipe.s1.desc">调用 macOS <code class="tech-tag">IOPMSchedulePowerEvent</code> 内核接口，在任务到点前 60s 硬件叫醒 Mac，并申请电源守护阻止深睡断网。</p></li>
-        <li class="node"><span class="node-no mono">02</span><h3 data-i18n="pipe.s2.title">Wi-Fi 网络自愈与模型探针</h3><p data-i18n-html="pipe.s2.desc">唤醒后，内置 <code class="tech-tag">NetworkMonitor</code> 追踪网络握手，并实时读取官方模型缓存与 5H 额度重置倒计时。</p></li>
-        <li class="node"><span class="node-no mono">03</span><h3 data-i18n="pipe.s3.title">本地 Codex CLI 静默派发</h3><p data-i18n-html="pipe.s3.desc">直调官方 <code class="tech-tag">ChatGPT.app/.../codex</code> CLI，精准派发至指定 Project 或历史 Session，支持选模型与 Thinking 强度，锁屏免密执行。</p></li>
-        <li class="node"><span class="node-no mono">04</span><h3 data-i18n="pipe.s4.title">codex:// 免重启即时呈现</h3><p data-i18n-html="pipe.s4.desc">同步更新本地 session 会话索引与 SQLite 缓存，通过 <code class="tech-tag">codex://threads/&lt;ID&gt;</code> 深度协议让运行中的桌面端无感刷新。</p></li>
+        <li class="node"><span class="node-no mono">01</span><h3 data-i18n="pipe.s1.title">电源待命守护</h3><p data-i18n-html="pipe.s1.desc">为已排定任务申请 <code class="tech-tag">PreventUserIdleSystemSleep</code>；尝试提前 60 秒唤醒，注册可能因权限失败。</p></li>
+        <li class="node"><span class="node-no mono">02</span><h3 data-i18n="pipe.s2.title">网络与额度检查</h3><p data-i18n-html="pipe.s2.desc"><code class="tech-tag">NetworkMonitor</code> 检查网络；读取模型缓存和账号额度，根据会话活跃状态调整探测频率。</p></li>
+        <li class="node"><span class="node-no mono">03</span><h3 data-i18n="pipe.s3.title">本地 CLI 后台派发</h3><p data-i18n-html="pipe.s3.desc">查找官方本地 CLI，新会话使用 <code class="tech-tag">codex exec</code>，已有会话使用 <code class="tech-tag">codex queue</code>，传入所选模型与参数。</p></li>
+        <li class="node"><span class="node-no mono">04</span><h3 data-i18n="pipe.s4.title">会话同步与派发记录</h3><p data-i18n-html="pipe.s4.desc">同步本地会话索引与缓存，记录结果、耗时和参数，并提供 <code class="tech-tag">codex://threads/&lt;ID&gt;</code> 会话入口。</p></li>
       </ol>
     </section>
 
@@ -233,7 +233,7 @@
       <header class="sec-head">
         <p class="tag mono" data-i18n="matrix.tag">Reliability Matrix</p>
         <h2 class="h2" data-i18n="matrix.title" data-strip>🖥️ Mac 锁屏与休眠状态支持矩阵</h2>
-        <p class="sec-desc" data-i18n="matrix.desc">我们对主流 Apple Silicon 与 Intel Mac 设备进行了严格的实机休眠唤醒测试，技术边界透明清晰。</p>
+        <p class="sec-desc" data-i18n="matrix.desc">以下说明派发所需条件；并非所有机型与休眠状态都已验证。后台模式需要网络、认证与运行中的系统。</p>
       </header>
       <div class="matrix">
         <table>
@@ -247,12 +247,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td data-i18n-html="matrix.r1.form"></td><td data-i18n="matrix.r1.state"></td><td data-i18n="matrix.r1.power"></td><td><span class="st st-green" data-i18n="matrix.r1.status" data-strip></span></td><td data-i18n="matrix.r1.note"></td></tr>
-            <tr><td data-i18n-html="matrix.r2.form"></td><td data-i18n="matrix.r2.state"></td><td data-i18n="matrix.r2.power"></td><td><span class="st st-green" data-i18n="matrix.r2.status" data-strip></span></td><td data-i18n="matrix.r2.note"></td></tr>
-            <tr><td data-i18n-html="matrix.r3.form"></td><td data-i18n="matrix.r3.state"></td><td data-i18n="matrix.r3.power"></td><td><span class="st st-green" data-i18n="matrix.r3.status" data-strip></span></td><td data-i18n="matrix.r3.note"></td></tr>
-            <tr><td data-i18n-html="matrix.r4.form"></td><td data-i18n="matrix.r4.state"></td><td data-i18n="matrix.r4.power"></td><td><span class="st st-amber" data-i18n="matrix.r4.status" data-strip></span></td><td data-i18n="matrix.r4.note"></td></tr>
-            <tr><td data-i18n-html="matrix.r5.form"></td><td data-i18n-html="matrix.r5.state"></td><td data-i18n="matrix.r5.power"></td><td><span class="st st-green" data-i18n="matrix.r5.status" data-strip></span></td><td data-i18n="matrix.r5.note"></td></tr>
-            <tr><td data-i18n-html="matrix.r6.form"></td><td data-i18n-html="matrix.r6.state"></td><td data-i18n="matrix.r6.power"></td><td><span class="st st-red" data-i18n="matrix.r6.status" data-strip></span></td><td data-i18n-html="matrix.r6.note"></td></tr>
+            <tr><td data-i18n-html="matrix.r1.form"><strong>Mac mini / Studio / Pro</strong><br><small style="color: var(--text-muted);">桌面台式机</small></td><td data-i18n="matrix.r1.state">锁屏 / 显示器关闭</td><td data-i18n="matrix.r1.power">始终连接电源</td><td><span class="st st-green" data-i18n="matrix.r1.status" data-strip>可后台发送</span></td><td data-i18n="matrix.r1.note">锁屏不阻止 CLI 运行；系统需保持运行，网络和认证有效。</td></tr>
+            <tr><td data-i18n-html="matrix.r2.form"><strong>Mac mini / Studio / Pro</strong><br><small style="color: var(--text-muted);">桌面台式机</small></td><td data-i18n="matrix.r2.state">系统深度休眠 (Sleep)</td><td data-i18n="matrix.r2.power">始终连接电源</td><td><span class="st st-amber" data-i18n="matrix.r2.status" data-strip>取决于唤醒是否成功</span></td><td data-i18n="matrix.r2.note">提前 60 秒尝试注册唤醒；权限、系统状态和网络恢复会影响执行。</td></tr>
+            <tr><td data-i18n-html="matrix.r3.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td><td data-i18n="matrix.r3.state">开盖 + 锁屏 / 休眠</td><td data-i18n="matrix.r3.power">连接电源 (推荐)</td><td><span class="st st-green" data-i18n="matrix.r3.status" data-strip>保持运行时可发送</span></td><td data-i18n="matrix.r3.note">建议开盖插电。防空闲休眠不等于保证从强制休眠恢复。</td></tr>
+            <tr><td data-i18n-html="matrix.r4.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td><td data-i18n="matrix.r4.state">开盖 + 锁屏 / 休眠</td><td data-i18n="matrix.r4.power">纯电池供电</td><td><span class="st st-amber" data-i18n="matrix.r4.status" data-strip>受电量与系统状态影响</span></td><td data-i18n="matrix.r4.note">低电量、省电设置和网络恢复可能影响派发，建议插电。</td></tr>
+            <tr><td data-i18n-html="matrix.r5.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td><td data-i18n-html="matrix.r5.state">合盖 + 接外接显示器<br><small style="color: var(--text-muted);">(Clamshell 合盖模式)</small></td><td data-i18n="matrix.r5.power">连接电源</td><td><span class="st st-green" data-i18n="matrix.r5.status" data-strip>需合盖桌面模式正常运行</span></td><td data-i18n="matrix.r5.note">连接电源与外接显示器，并确认系统保持运行和网络可用。</td></tr>
+            <tr><td data-i18n-html="matrix.r6.form"><strong>MacBook (Air / Pro)</strong><br><small style="color: var(--text-muted);">笔记本形态</small></td><td data-i18n-html="matrix.r6.state">纯合盖 (Lid Closed)<br><small style="color: var(--text-muted);">(无外接显示器，放桌上/包里)</small></td><td data-i18n="matrix.r6.power">任意供电</td><td><span class="st st-red" data-i18n="matrix.r6.status" data-strip>不保证自动执行</span></td><td data-i18n-html="matrix.r6.note">合盖后的系统休眠与网络状态可能阻止执行，不能依赖防空闲休眠断言恢复。</td></tr>
           </tbody>
         </table>
       </div>
@@ -263,7 +263,7 @@
       <header class="sec-head">
         <p class="tag mono" data-i18n="install.tag">Quick Installation</p>
         <h2 class="h2" data-i18n="install.title">快速安装部署 Next5h</h2>
-        <p class="sec-desc" data-i18n="install.desc">我们为不同偏好的开发者提供了灵活的安装方式，从一键终端脚本到源码编译，开箱即用。</p>
+        <p class="sec-desc" data-i18n="install.desc">下载已发布安装包，或从 main 构建最新源码。下方截图展示最新源码，发布包可能滞后。</p>
       </header>
       <div class="install">
         <div class="dl">
@@ -274,32 +274,30 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
             <span data-i18n="x.dlBtn">下载 DMG</span>
           </a>
-          <p class="dl-note" data-i18n="x.dlNote">Developer ID 签名并经 Apple 公证。打开后把 Next5h 拖进「应用程序」即可。</p>
+          <p class="dl-note" data-i18n="x.dlNote">已发布 DMG 使用 Developer ID 签名与 Apple 公证。拖入「应用程序」即可；最新版源码功能可能尚未包含在发布包中。</p>
         </div>
         <div class="src">
-          <p class="src-title" data-i18n="install.tabSource" data-strip>💻 源码克隆与编译构建 (推荐)</p>
-          <p class="src-desc" data-i18n-html="install.sourceDesc">使用 Swift Package Manager 原生 Release 编译模式，打包生成标准独立的 <code>Next5h.app</code>：</p>
+          <p class="src-title" data-i18n="install.tabSource" data-strip>从最新源码构建</p>
+          <p class="src-desc" data-i18n-html="install.sourceDesc">需要 Swift 5.9+ / Xcode Command Line Tools；本地打包后使用临时签名：</p>
           <div class="code">
-            <button type="button" class="copy mono" data-copy-target="code-source"><span data-i18n="hero.copyBtn">复制</span></button>
-<pre><code id="code-source"># 1. 克隆项目仓库
-git clone https://github.com/KhalilHsu/next5h.git
+            <button type="button" class="copy mono" data-copy-target="code-source"><span data-i18n="hero.copyBtn">一键复制</span></button>
+<pre><code id="code-source">git clone https://github.com/KhalilHsu/next5h.git
 cd next5h
-
-# 2. 执行一键构建打包脚本 (编译 Swift 二进制并构建 Next5h.app)
-./build_app.sh
-
-# 3. 运行并体验应用
+swift test
+SKIP_INSTALL=1 bash build_app.sh
+codesign --force --deep --sign - Next5h.app
+codesign --verify --deep --strict Next5h.app
 open Next5h.app</code></pre>
           </div>
-          <p class="src-hint" data-i18n-html="install.sourceHint" data-strip>💡 提示：如需安装至系统应用程序目录，可直接执行：<code>cp -R Next5h.app /Applications/</code></p>
+          <p class="src-hint" data-i18n-html="install.sourceHint" data-strip>安装到应用程序目录：<code>ditto Next5h.app /Applications/Next5h.app</code></p>
         </div>
       </div>
       <div class="checks">
-        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check1.title">前置环境核验</strong><p data-i18n-html="install.check1.desc">macOS 14.0 (Sonoma) 或更高版本；已安装官方 ChatGPT macOS 客户端 (<code>/Applications/ChatGPT.app</code>)。</p></div></div>
-        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check2.title">预置 07:00 任务自动生效</strong><p data-i18n="install.check2.desc">初次启动自动创建每天 07:00 执行的预置任务，并注册硬件 RTC 闹钟，点击卡片可随时就地编辑。</p></div></div>
+        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check1.title">前置环境核验</strong><p data-i18n-html="install.check1.desc">macOS 14+；兼容的本地官方 Codex CLI 与有效登录。额度探针读取 <code>~/.codex/auth.json</code>；前台发送需要桌面客户端。</p></div></div>
+        <div class="check"><span class="check-i mono">✓</span><div><strong data-i18n="install.check2.title">晨间问候开启，续任务预置关闭</strong><p data-i18n="install.check2.desc">晨间：每日 07:00、6 Luna / low。续任务：当前默认模型 / medium、重置后 +1 分钟；先选择已有会话，再开启开关。</p></div></div>
       </div>
       <figure class="shot">
-        <img src="assets/screenshot.png" alt="Next5h" width="1024" height="910" loading="lazy">
+        <img src="assets/screenshot.png?v=20261009" alt="Next5h queue: morning greeting enabled and 5H continuation paused" width="1532" height="1612" loading="lazy">
       </figure>
     </section>
 
@@ -311,12 +309,12 @@ open Next5h.app</code></pre>
         <p class="sec-desc" data-i18n="faq.desc">关于安全性、唤醒机制与日常使用的常见疑问。</p>
       </header>
       <div class="faq">
-        <details><summary><span data-i18n="faq.q1"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a1"></div></details>
-        <details><summary><span data-i18n="faq.q2"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a2"></div></details>
-        <details><summary><span data-i18n="faq.q3"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a3"></div></details>
-        <details><summary><span data-i18n="faq.q4"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a4"></div></details>
-        <details><summary><span data-i18n="faq.q5"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a5"></div></details>
-        <details><summary><span data-i18n="faq.q6"></span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a6"></div></details>
+        <details><summary><span data-i18n="faq.q1">什么是“预定发送”？它可以发送到指定的 Project 或历史 Session 吗？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a1">支持无项目或本地项目的新会话，以及追加到已有会话。选择「5H 解封后」按重置时间 +1 分钟排定；续任务预置默认关闭，需选目标会话后开启。历史记录可复制、再次发送、以此为模板新建或删除单条记录。</div></details>
+        <details><summary><span data-i18n="faq.q2">晨间预置会改变额度或保证每天三个窗口吗？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a2">不会。它只是每天本地时间 07:00 发送「嗨」，默认使用 6 Luna / low。实际额度与重置时间由官方决定；页面时间轴是排程示意，不是账号额度承诺。已有任务升级后不会被默认模型覆盖。</div></details>
+        <details><summary><span data-i18n="faq.q3">需要额外配置 API Key 吗？认证数据如何使用？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a3">使用本地 Codex 登录，无需为这条派发链路另填 API Key。额度探针会读取 <code>~/.codex/auth.json</code> 并请求官方后端；任务也会通过官方 CLI 发往服务端。请勿分享认证文件。</div></details>
+        <details><summary><span data-i18n="faq.q4">电脑在休眠锁屏状态下，真的能自己唤醒并执行吗？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a4">锁屏、息屏且系统仍运行时，后台 CLI 可执行。有已排定任务时申请防空闲休眠，同时尝试提前 60 秒注册唤醒。深度休眠恢复取决于注册权限、设备状态和网络；不能保证强制休眠后执行。前台模式需要解锁。</div></details>
+        <details><summary><span data-i18n="faq.q5">MacBook 笔记本合盖放进背包里能自动唤醒吗？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a5">不能依赖纯合盖状态执行。合盖桌面模式需要外接显示器和电源，并确认系统仍在运行；没有外接显示器的合盖状态可能阻止应用与网络工作。</div></details>
+        <details><summary><span data-i18n="faq.q6">任务执行完毕后，ChatGPT 桌面客户端需要手动重启才能看到吗？</span><i aria-hidden="true"></i></summary><div class="faq-a" data-i18n-html="faq.a6">后台派发会同步本地会话索引与 SQLite 缓存，并提供 <code>codex://threads/&lt;ID&gt;</code> 链接。能否即时呈现仍取决于安装的桌面客户端是否支持该协议及本地数据格式。</div></details>
       </div>
     </section>
   </main>
@@ -325,7 +323,7 @@ open Next5h.app</code></pre>
     <div class="wrap footer-top">
       <div class="footer-brand">
         <div class="brand"><img src="assets/app-icon.png" alt="" width="28" height="28"><span>Next5h</span></div>
-        <p data-i18n="footer.desc">macOS 原生 Codex 5H 自动续航与任务排定工作台。专为 macOS 开发者打造，释放算力极限。</p>
+        <p data-i18n="footer.desc">macOS 原生 Codex 消息排定与额度看板。提前安排任务，保留你的工作节奏。</p>
       </div>
       <div class="footer-cols">
         <div>
@@ -350,6 +348,6 @@ open Next5h.app</code></pre>
     </div>
   </footer>
 
-  <script src="js/main.js?v=20"></script>
+  <script src="js/main.js?v=21"></script>
 </body>
 </html>

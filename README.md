@@ -1,63 +1,34 @@
-# Next5h 官网与落地页 (Website & Landing Page)
+# Next5h website
 
-本目录为 **Next5h** 的官方产品落地页与安装指引网站，完全自包含、零重型构建依赖，采用纯原生现代 HTML5、CSS3 与 Vanilla JavaScript 打造，遵循 Apple 原生及 Linear 设计美学。
+Static product and installation site for [Next5h](https://khalilhsu.github.io/next5h/), maintained on the `gh-pages` branch. The application and its bilingual README live on `main`.
 
----
+## Files
 
-## 目录结构
+- `index.html`: product page, installation commands, compatibility conditions and FAQ.
+- `css/style.css`: responsive layout and light/dark themes.
+- `js/i18n.js`: Chinese/English copy and language selection.
+- `js/main.js`: theme, language, illustrative demos, copying and latest-release links.
+- `assets/`: icons and the actual app screenshot, supplied October 9, 2026.
 
-```
-website/
-├── index.html          # 官网主页 (语义化 HTML5、中英双语自适应、暗/亮色自适应)
-├── css/
-│   ├── style.css       # 核心样式 (设计令牌、暗/亮色切换、毛玻璃、响应式排版)
-│   └── components.css  # 专用组件 (核心价值看板、时间轴控件、安装选项卡、矩阵表格、FAQ)
-├── js/
-│   ├── i18n.js         # 国际化语言包 (浏览器默认语言识别、中英双语即时切换)
-│   └── main.js         # 核心交互 (暗亮色切换、一键复制反馈、平滑滚动、移动端抽屉)
-├── assets/
-│   ├── icon.svg        # Next5h 原生矢量应用图标
-│   └── favicon.svg     # 浏览器 Favicon
-└── README.md           # 本文档
-```
+## Preview and publish
 
----
-
-## 本地快速预览
-
-官网为静态网页，无需编译即可直接运行。
-
-### 方式一：直接用浏览器打开
-双击 `website/index.html` 或在终端运行：
 ```bash
-open website/index.html
-```
-
-### 方式二：使用 Python 简易 HTTP 服务
-```bash
-cd website
 python3 -m http.server 8000
-# 浏览器访问：http://localhost:8000
+# Open http://localhost:8000
 ```
 
-### 方式三：使用 Node.js / npx serve
-```bash
-npx serve website
-```
+GitHub Pages publishes the root of `gh-pages`. Push this branch to update the site. Screenshots and feature descriptions follow current `main`; download links resolve to the latest published release, which may lag behind source.
 
 ---
 
-## 部署上线
+## 简体中文
 
-### 1. GitHub Pages
-在仓库 Settings -> Pages 中：
-* **Source**: Deploy from a branch
-* **Branch**: `main`
-* **Folder**: `/website`
-点击保存即可自动发布。
+官网为纯静态 HTML / CSS / JavaScript，支持中英切换、亮暗主题和响应式布局。网站源码维护在 **`gh-pages` 分支根目录**，应用与双语 README 在 `main` 分支。
 
-### 2. Vercel
-直接导入仓库，将 **Root Directory** 设置为 `website`，点击 Deploy 即可。
+- `index.html`：产品介绍、安装命令、运行条件与 FAQ。
+- `css/style.css`：样式与响应式布局。
+- `js/i18n.js`：中英文案和语言选择。
+- `js/main.js`：语言、主题、示意动画、复制与最新发布链接。
+- `assets/`：图标及 2026-10-09 用户提供的真实应用截图。
 
-### 3. Cloudflare Pages
-在 Cloudflare Dashboard 创建 Pages 项目，指定构建输出目录为 `website` 即可。
+在分支根目录运行 `python3 -m http.server 8000` 后打开 `http://localhost:8000` 预览。推送 `gh-pages` 后由 GitHub Pages 发布根目录。截图与特性以最新 `main` 为准；下载按钮对应正式 Release，可能晚于源码。交互动画是排程示意，不代表账号额度承诺。
