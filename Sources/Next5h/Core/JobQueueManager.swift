@@ -220,6 +220,7 @@ public final class JobQueueManager: ObservableObject {
                     return nil
                 }(),
                 dispatchMode: job.dispatchMode,
+                strategy: job.strategy,
                 triggerStrategySummary: job.strategy.displayName
             )
             
@@ -320,6 +321,7 @@ public final class JobQueueManager: ObservableObject {
                     return nil
                 }(),
                 dispatchMode: job.dispatchMode,
+                strategy: job.strategy,
                 triggerStrategySummary: "手动再次发送"
             )
             

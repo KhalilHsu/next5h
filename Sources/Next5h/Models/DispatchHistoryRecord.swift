@@ -16,8 +16,14 @@ public struct DispatchHistoryRecord: Identifiable, Codable, Equatable {
     public var destinationSummary: String
     public var targetSessionId: String?
     public var dispatchMode: DispatchMode
+    public var strategy: ScheduleStrategy?
     public var triggerStrategySummary: String
     
+    /// Older history entries can still inherit a strategy from their source job.
+    public func templateStrategy(sourceJob: ScheduledJob?) -> ScheduleStrategy {
+        strategy ?? sourceJob?.strategy ?? .dailyAtTime(hour: 7, minute: 0)
+    }
+
     public init(
         id: UUID = UUID(),
         jobId: UUID? = nil,
@@ -34,6 +40,7 @@ public struct DispatchHistoryRecord: Identifiable, Codable, Equatable {
         destinationSummary: String = "新建会话",
         targetSessionId: String? = nil,
         dispatchMode: DispatchMode = .silentAPI,
+        strategy: ScheduleStrategy? = nil,
         triggerStrategySummary: String = "手动/定时派发"
     ) {
         self.id = id
@@ -51,6 +58,7 @@ public struct DispatchHistoryRecord: Identifiable, Codable, Equatable {
         self.destinationSummary = destinationSummary
         self.targetSessionId = targetSessionId
         self.dispatchMode = dispatchMode
+        self.strategy = strategy
         self.triggerStrategySummary = triggerStrategySummary
     }
 }

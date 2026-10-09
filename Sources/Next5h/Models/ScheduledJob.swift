@@ -82,9 +82,9 @@ public struct ScheduledJob: Identifiable, Codable, Equatable {
         self.isDefaultPreset = isDefaultPreset
     }
     
-    /// 默认初始任务预置 (精确预定明天 07:00, 5.6 Luna, 推理强度: 低, 速度: 标准, "嗨")
+    /// 默认初始任务预置 (精确预定明天 07:00, 6 Luna, 推理强度: 低, 速度: 标准, "嗨")
     public static func makeDefaultPreset() -> ScheduledJob {
-        let lunaModel = ModelCatalogService.shared.resolveModel(slugOrName: "gpt-5.6-luna")
+        let lunaModel = ModelCatalogService.shared.resolveModel(slugOrName: "gpt-6-luna")
         let strategy = ScheduleStrategy.dailyAtTime(hour: 7, minute: 0)
         let firstExecutionDate = SmartScheduler.shared.calculateNextExecutionDate(
             for: strategy,

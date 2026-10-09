@@ -2,11 +2,41 @@ import XCTest
 @testable import Next5h
 
 final class Next5hTests: XCTestCase {
-    
+    func testHistoryTemplateStrategyPersistence() throws {
+        let strategies: [ScheduleStrategy] = [
+            .dailyAtTime(hour: 9, minute: 25),
+            .autoOnQuotaReset(safetyDelayMinutes: 4),
+            .delayDuration(seconds: 10800),
+            .customTime(Date(timeIntervalSince1970: 1800000000))
+        ]
+        for strategy in strategies {
+            let record = DispatchHistoryRecord(title: "Template", prompt: "Review", strategy: strategy)
+            let decoded = try JSONDecoder().decode(DispatchHistoryRecord.self, from: JSONEncoder().encode(record))
+            XCTAssertEqual(decoded.templateStrategy(sourceJob: nil), strategy)
+            XCTAssertEqual(decoded.templateStrategy(sourceJob: ScheduledJob()), strategy)
+        }
+    }
+
+    func testLegacyHistoryTemplateStrategyFallback() throws {
+        let record = DispatchHistoryRecord(title: "Legacy", prompt: "Review")
+        let data = try JSONEncoder().encode(record)
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        json.removeValue(forKey: "strategy")
+        let legacyData = try JSONSerialization.data(withJSONObject: json)
+        let decoded = try JSONDecoder().decode(DispatchHistoryRecord.self, from: legacyData)
+        XCTAssertNil(decoded.strategy)
+        let source = ScheduledJob(strategy: .delayDuration(seconds: 7200))
+        XCTAssertEqual(decoded.templateStrategy(sourceJob: source), source.strategy)
+        XCTAssertEqual(decoded.templateStrategy(sourceJob: nil), .dailyAtTime(hour: 7, minute: 0))
+    }
+
+
+
+
     func testDynamicModelCatalogLoading() {
         let models = ModelCatalogService.loadFromDisk()
         XCTAssertFalse(models.isEmpty)
-        
+
         let sol = models.first(where: { $0.slug == "gpt-5.6-sol" })
         XCTAssertNotNil(sol)
         XCTAssertEqual(sol?.displayName, "5.6 Sol")
@@ -53,8 +83,8 @@ final class Next5hTests: XCTestCase {
     func testDefaultPresetJobUpdated() {
         let defaultJob = ScheduledJob.makeDefaultPreset()
         XCTAssertEqual(defaultJob.prompt, "嗨")
-        XCTAssertEqual(defaultJob.model.slug, "gpt-5.6-luna")
-        XCTAssertEqual(defaultJob.model.displayName, "5.6 Luna")
+        XCTAssertEqual(defaultJob.model.slug, "gpt-6-luna")
+        XCTAssertEqual(defaultJob.model.displayName, "6 Luna")
         XCTAssertEqual(defaultJob.reasoningEffort, .low)
         XCTAssertEqual(defaultJob.speed, .standard)
         XCTAssertEqual(defaultJob.destination.projectScope, .noProject)

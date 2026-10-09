@@ -469,7 +469,7 @@ struct HistoryRecordRowView: View {
             reasoningEffort: effort,
             speed: .standard,
             destination: destination,
-            strategy: .dailyAtTime(hour: 7, minute: 0),
+            strategy: record.templateStrategy(sourceJob: queueManager.jobs.first { $0.id == record.jobId }),
             dispatchMode: record.dispatchMode,
             status: .pending,
             createdAt: Date(),

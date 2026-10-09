@@ -5,7 +5,6 @@ public struct StrategyPickerView: View {
     @ObservedObject private var quotaEngine = QuotaProbeEngine.shared
     @ObservedObject private var loc = LocalizationManager.shared
     
-    @State private var strategyType: Int = 1 // 0: 5H Reset, 1: Daily Repeat, 2: Delay, 3: Custom Date
     @State private var dailyTime: Date = {
         var comp = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         comp.hour = 7
@@ -30,7 +29,7 @@ public struct StrategyPickerView: View {
             Label(L10n.tr(zh: "触发策略", en: "Trigger Schedule", ja: "トリガー条件"), systemImage: "clock.badge.checkmark")
                 .font(.subheadline.bold())
             
-            Picker("", selection: $strategyType) {
+            Picker("", selection: strategyTypeBinding) {
                 Text(L10n.tr(zh: "🌅 每日定时", en: "🌅 Daily", ja: "🌅 毎日定時")).tag(1)
                 Text(L10n.tr(zh: "⚡️ 5H解封 (+1m)", en: "⚡️ 5H Reset (+1m)", ja: "⚡️ 5H復活時 (+1分)")).tag(0)
                 Text(L10n.tr(zh: "⏳ 延时 X 小时", en: "⏳ Delay X Hours", ja: "⏳ X時間遅延")).tag(2)
@@ -59,7 +58,7 @@ public struct StrategyPickerView: View {
                         
                         Spacer()
                         
-                        DatePicker("", selection: $dailyTime, displayedComponents: .hourAndMinute)
+                        DatePicker("", selection: dailyTimeBinding, displayedComponents: .hourAndMinute)
                             .labelsHidden()
                             .datePickerStyle(.compact)
                     }
@@ -92,14 +91,14 @@ public struct StrategyPickerView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text(L10n.tr(
-                                zh: "延时时长: \(String(format: "%.1f", delayHours)) 小时后",
-                                en: "Delay: \(String(format: "%.1f", delayHours)) hours",
-                                ja: "遅延時間: \(String(format: "%.1f", delayHours)) 時間後"
+                                zh: "延时时长: \(String(format: "%.1f", delayHoursBinding.wrappedValue)) 小时后",
+                                en: "Delay: \(String(format: "%.1f", delayHoursBinding.wrappedValue)) hours",
+                                ja: "遅延時間: \(String(format: "%.1f", delayHoursBinding.wrappedValue)) 時間後"
                             ))
                             .font(.caption.bold())
                             Spacer()
                         }
-                        Slider(value: $delayHours, in: 0.5...12, step: 0.5)
+                        Slider(value: delayHoursBinding, in: 0.5...12, step: 0.5)
                     }
                     .padding(8)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
@@ -108,7 +107,7 @@ public struct StrategyPickerView: View {
                         Text(L10n.tr(zh: "指定日期时间:", en: "Specific Date & Time:", ja: "指定日時:"))
                             .font(.caption.bold())
                         Spacer()
-                        DatePicker("", selection: $customDate)
+                        DatePicker("", selection: customDateBinding)
                             .labelsHidden()
                             .datePickerStyle(.compact)
                     }
@@ -125,47 +124,67 @@ public struct StrategyPickerView: View {
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
-        .onChange(of: strategyType) { _, _ in syncStrategy() }
-        .onChange(of: dailyTime) { _, _ in syncStrategy() }
-        .onChange(of: delayHours) { _, _ in syncStrategy() }
-        .onChange(of: customDate) { _, _ in syncStrategy() }
-        .onAppear {
-            initFromStrategy()
-        }
     }
-    
-    private func initFromStrategy() {
+
+    // Derive the visible controls from the bound strategy so template changes
+    // and saved values always use the same source of truth.
+    private var strategyType: Int {
         switch strategy {
-        case .dailyAtTime(let h, let m):
-            strategyType = 1
-            var comp = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-            comp.hour = h
-            comp.minute = m
-            dailyTime = Calendar.current.date(from: comp) ?? Date()
-        case .autoOnQuotaReset:
-            strategyType = 0
-        case .delayDuration(let sec):
-            strategyType = 2
-            delayHours = sec / 3600.0
-        case .customTime(let date):
-            strategyType = 3
-            customDate = date
+        case .autoOnQuotaReset: return 0
+        case .dailyAtTime: return 1
+        case .delayDuration: return 2
+        case .customTime: return 3
         }
     }
-    
-    private func syncStrategy() {
-        switch strategyType {
-        case 1:
-            let comp = Calendar.current.dateComponents([.hour, .minute], from: dailyTime)
-            strategy = .dailyAtTime(hour: comp.hour ?? 7, minute: comp.minute ?? 0)
-        case 0:
-            strategy = .autoOnQuotaReset(safetyDelayMinutes: 1)
-        case 2:
-            strategy = .delayDuration(seconds: delayHours * 3600.0)
-        case 3:
-            strategy = .customTime(customDate)
-        default:
-            break
-        }
+
+    private var strategyTypeBinding: Binding<Int> {
+        Binding(get: { strategyType }, set: { type in
+            switch strategy {
+            case .dailyAtTime: dailyTime = dailyTimeBinding.wrappedValue
+            case .delayDuration(let seconds): delayHours = seconds / 3600
+            case .customTime(let date): customDate = date
+            case .autoOnQuotaReset: break
+            }
+            switch type {
+            case 0: strategy = .autoOnQuotaReset(safetyDelayMinutes: 1)
+            case 1:
+                let components = Calendar.current.dateComponents([.hour, .minute], from: dailyTime)
+                strategy = .dailyAtTime(hour: components.hour ?? 7, minute: components.minute ?? 0)
+            case 2: strategy = .delayDuration(seconds: delayHours * 3600)
+            case 3: strategy = .customTime(customDate)
+            default: break
+            }
+        })
+    }
+
+    private var dailyTimeBinding: Binding<Date> {
+        Binding(get: {
+            guard case .dailyAtTime(let hour, let minute) = strategy else { return dailyTime }
+            return Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: dailyTime) ?? dailyTime
+        }, set: { date in
+            dailyTime = date
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            strategy = .dailyAtTime(hour: components.hour ?? 7, minute: components.minute ?? 0)
+        })
+    }
+
+    private var delayHoursBinding: Binding<Double> {
+        Binding(get: {
+            if case .delayDuration(let seconds) = strategy { return seconds / 3600 }
+            return delayHours
+        }, set: { hours in
+            delayHours = hours
+            strategy = .delayDuration(seconds: hours * 3600)
+        })
+    }
+
+    private var customDateBinding: Binding<Date> {
+        Binding(get: {
+            if case .customTime(let date) = strategy { return date }
+            return customDate
+        }, set: { date in
+            customDate = date
+            strategy = .customTime(date)
+        })
     }
 }
