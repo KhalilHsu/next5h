@@ -317,7 +317,7 @@
 
   /* ---------------- Latest release ---------------- */
 
-  fetch('https://api.github.com/repos/KhalilHsu/next5h/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+  fetch('https://api.github.com/repos/KhalilHsu/next5h/releases/latest', { cache: 'no-store', headers: { Accept: 'application/vnd.github+json' } })
     .then((res) => (res.ok ? res.json() : null))
     .then((release) => {
       const dmg = release && (release.assets || []).find((a) => /\.dmg$/i.test(a.name));
