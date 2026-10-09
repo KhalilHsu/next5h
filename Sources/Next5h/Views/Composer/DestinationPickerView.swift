@@ -12,6 +12,25 @@ public struct DestinationPickerView: View {
     
     public init(destination: Binding<TargetDestination>) {
         self._destination = destination
+        let initial = destination.wrappedValue
+        let router = SessionRouter.shared
+        let projectID: String
+        if case .specific(let id, _) = initial.projectScope {
+            projectID = id
+        } else {
+            projectID = router.realCodexProjects.first?.id ?? ""
+        }
+        let sessionID: String
+        if case .existing(let id, _) = initial.conversationAction {
+            sessionID = id
+        } else {
+            sessionID = router.sessions(for: initial.projectScope).first?.id ?? ""
+        }
+        // Initialize state without firing scope/project change handlers and selecting a different session.
+        self._isSpecificProject = State(initialValue: initial.projectScope.isSpecific)
+        self._selectedProjectId = State(initialValue: projectID)
+        self._isNewSession = State(initialValue: initial.conversationAction.isNew)
+        self._selectedSessionId = State(initialValue: sessionID)
     }
     
     /// 当前选定范围下的会话列表
@@ -97,7 +116,7 @@ public struct DestinationPickerView: View {
                                 Next5hMenuPicker(
                                     label: L10n.tr(zh: "选择会话", en: "Choose session", ja: "会話を選択"),
                                     selection: $selectedSessionId,
-                                    options: availableSessions.map { .init(value: $0.id, title: $0.title) }
+                                    options: sessionOptions
                                 )
                             }
                             .padding(.top, 2)
@@ -119,9 +138,14 @@ public struct DestinationPickerView: View {
         .onChange(of: selectedSessionId) { _, _ in
             syncDestination()
         }
-        .onAppear {
-            initFromDestination()
+    }
+
+    private var sessionOptions: [Next5hChoice<String>] {
+        var options = availableSessions.map { Next5hChoice(value: $0.id, title: $0.title) }
+        if selectedSessionId.isEmpty {
+            options.insert(.init(value: "", title: L10n.tr(zh: "选择会话", en: "Choose session", ja: "会話を選択")), at: 0)
         }
+        return options
     }
     
     private func onScopeChanged() {
@@ -137,24 +161,6 @@ public struct DestinationPickerView: View {
     private func onProjectChanged() {
         selectedSessionId = availableSessions.first?.id ?? ""
         syncDestination()
-    }
-    
-    private func initFromDestination() {
-        if case .specific(let id, _) = destination.projectScope {
-            isSpecificProject = true
-            selectedProjectId = id
-        } else {
-            isSpecificProject = false
-            selectedProjectId = sessionRouter.realCodexProjects.first?.id ?? ""
-        }
-        
-        if case .existing(let id, _) = destination.conversationAction {
-            isNewSession = false
-            selectedSessionId = id
-        } else {
-            isNewSession = true
-            selectedSessionId = availableSessions.first?.id ?? ""
-        }
     }
     
     private func syncDestination() {

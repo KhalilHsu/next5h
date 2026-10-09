@@ -18,7 +18,7 @@ public struct QueueListView: View {
                                 .font(.system(size: 21, weight: .semibold))
                             
                             if !queueManager.jobs.isEmpty {
-                                Text(L10n.queuePendingCount(queueManager.jobs.count))
+                                Text(L10n.queuePendingCount(queueManager.jobs.filter { $0.status == .pending || $0.status == .waitingForQuota }.count))
                                     .font(.caption.bold())
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
@@ -126,6 +126,17 @@ struct QueueJobCardView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(statusColor(job.status).opacity(0.10), in: RoundedRectangle(cornerRadius: 5))
+                Toggle(L10n.tr(zh: "自动派发", en: "Automatic dispatch", ja: "自動送信"), isOn: Binding(
+                    get: { job.isEnabled },
+                    set: { setEnabled($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .tint(Next5hTheme.accent)
+                .disabled(job.status == .sending)
+                .help(L10n.tr(zh: "关闭后保留消息，暂停自动派发", en: "Keep this message and suspend automatic dispatch when off", ja: "オフにするとメッセージを保持して自動送信を停止"))
+                .accessibilityLabel(job.title + " · " + L10n.tr(zh: "自动派发", en: "Automatic dispatch", ja: "自動送信"))
             }
 
             Text(job.prompt)
@@ -172,21 +183,24 @@ struct QueueJobCardView: View {
             } label: {
                 Label(L10n.actionSendNow, systemImage: "play.fill")
             }
+            .disabled(!job.hasValidDestination || job.status == .sending)
             
             Button {
                 appState.openEditJobSheet(job: job)
             } label: {
                 Label(L10n.tr(zh: "编辑任务...", en: "Edit Task...", ja: "タスクを編集..."), systemImage: "pencil")
             }
+            .disabled(job.status == .sending)
             
             Button {
-                queueManager.togglePause(id: job.id)
+                setEnabled(!job.isEnabled)
             } label: {
                 Label(job.status == .paused
                       ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
                       : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"),
                       systemImage: job.status == .paused ? "play.fill" : "pause.fill")
             }
+            .disabled(job.status == .sending)
             
             Divider()
             
@@ -209,7 +223,13 @@ struct QueueJobCardView: View {
 
     private var scheduleSummary: some View {
         VStack(alignment: .leading, spacing: 3) {
-            if let date = job.scheduledExecutionDate {
+            if !job.isEnabled {
+                Text(job.hasValidDestination
+                     ? L10n.tr(zh: "自动派发已关闭", en: "Automatic dispatch off", ja: "自動送信オフ")
+                     : L10n.tr(zh: "选择已有会话后启用", en: "Choose a conversation to enable", ja: "既存の会話を選択して有効化"))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Next5hTheme.secondary)
+            } else if let date = job.scheduledExecutionDate {
                 Label(formatDateTime(date), systemImage: "clock")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Next5hTheme.accent)
@@ -226,15 +246,11 @@ struct QueueJobCardView: View {
             Button { queueManager.executeJob(jobId: job.id) } label: {
                 Next5hButtonLabel(L10n.actionSendNow, systemImage: "play.circle")
             }
+            .disabled(!job.hasValidDestination || job.status == .sending)
             Button { appState.openEditJobSheet(job: job) } label: {
                 Next5hButtonLabel(L10n.actionEdit, systemImage: "pencil")
             }
-            Button { queueManager.togglePause(id: job.id) } label: {
-                Next5hButtonLabel(job.status == .paused
-                      ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
-                      : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"),
-                      systemImage: job.status == .paused ? "arrow.clockwise" : "pause.circle")
-            }
+            .disabled(job.status == .sending)
             Button(role: .destructive) { queueManager.deleteJob(id: job.id) } label: {
                 Next5hButtonLabel(systemImage: "trash")
             }
@@ -242,6 +258,12 @@ struct QueueJobCardView: View {
             .help(L10n.tr(zh: "删除任务", en: "Delete Task", ja: "タスクを削除"))
         }
         .buttonStyle(Next5hButtonStyle(kind: .quiet))
+    }
+
+    private func setEnabled(_ enabled: Bool) {
+        if !queueManager.setJobEnabled(id: job.id, enabled: enabled), enabled, !job.hasValidDestination {
+            appState.openEditJobSheet(job: job)
+        }
     }
 
     private func statusColor(_ status: JobStatus) -> Color {

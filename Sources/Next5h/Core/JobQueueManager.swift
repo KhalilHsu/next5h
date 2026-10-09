@@ -8,13 +8,31 @@ public final class JobQueueManager: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var schedulerTimer: Timer?
+    private let storageURL: URL?
+    private let preferences: UserDefaults
+    private let startsScheduling: Bool
+    private static let continuationPresetKey = "installedQuotaContinuationPreset.v1"
     
-    private init() {
+    init(persistenceURL: URL? = nil, preferences: UserDefaults = .standard, startsScheduling: Bool = true) {
+        self.storageURL = persistenceURL
+        self.preferences = preferences
+        self.startsScheduling = startsScheduling
         loadPersistedJobs()
-        startDispatchLoop()
+        if startsScheduling {
+            startDispatchLoop()
+            QuotaProbeEngine.shared.$currentQuota
+                .receive(on: RunLoop.main)
+                .sink { [weak self] quota in self?.scheduleWaitingContinuations(currentQuota: quota) }
+                .store(in: &cancellables)
+        }
+    }
+
+    deinit {
+        schedulerTimer?.invalidate()
     }
     
     private var persistenceURL: URL {
+        if let storageURL { return storageURL }
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let dir = appSupport.appendingPathComponent("Next5h")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -23,14 +41,18 @@ public final class JobQueueManager: ObservableObject {
     
     private func loadPersistedJobs() {
         if let data = try? Data(contentsOf: persistenceURL),
-           let saved = try? JSONDecoder().decode([ScheduledJob].self, from: data),
-           !saved.isEmpty {
+           let saved = try? JSONDecoder().decode([ScheduledJob].self, from: data) {
             // 自动确保所有待发任务都有精确计算的未来执行时间，并自动清理已完成的一次性历史任务
             self.jobs = saved.compactMap { job in
                 if case .completed = job.status {
                     return nil // 已完成任务已在历史留痕中，队列中不再保留
                 }
                 var j = job
+                if !j.hasValidDestination || !j.isEnabled {
+                    j.status = .paused
+                    j.scheduledExecutionDate = nil
+                    return j
+                }
                 // 每日定时任务自愈：若任务为每日定时任务且处于 failed 状态，自动恢复为 pending 并重置为下次执行时间
                 if case .dailyAtTime = j.strategy, case .failed = j.status {
                     let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
@@ -39,42 +61,51 @@ public final class JobQueueManager: ObservableObject {
                     )
                     j.scheduledExecutionDate = nextDate
                     j.status = .pending
-                    _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
+                    registerWake(at: nextDate)
                     print("🔄 [JobQueueManager] 检测到每日任务 [\(j.title)] 处于失败状态，已自动重置排程至: \(nextDate)")
                 } else if j.status == .pending {
                     if j.scheduledExecutionDate == nil || j.scheduledExecutionDate! <= Date() {
-                        let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
-                            for: j.strategy,
-                            currentQuota: QuotaProbeEngine.shared.currentQuota
-                        )
-                        j.scheduledExecutionDate = nextDate
-                        _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
+                        j = preparedForScheduling(j, currentQuota: QuotaProbeEngine.shared.currentQuota)
                     }
                 }
                 return j
             }
-            saveJobs()
         } else {
             // 首次启动：预填精确到具体时间的 07:00 默认任务
             let initialPreset = ScheduledJob.makeDefaultPreset()
             if let sched = initialPreset.scheduledExecutionDate {
-                _ = PowerGuardian.shared.scheduleWakeEvent(at: sched)
+                registerWake(at: sched)
             }
             self.jobs = [initialPreset]
-            saveJobs()
+        }
+
+        // Install this disabled starter once, without replacing existing jobs or restoring a deleted starter.
+        let needsContinuationPreset = !preferences.bool(forKey: Self.continuationPresetKey)
+        if needsContinuationPreset, !jobs.contains(where: { $0.templateKind == .quotaContinuation }) {
+            jobs.append(ScheduledJob.makeQuotaContinuationPreset())
+        }
+        if saveJobs(), needsContinuationPreset {
+            preferences.set(true, forKey: Self.continuationPresetKey)
         }
     }
     
-    public func saveJobs() {
-        if let data = try? JSONEncoder().encode(jobs) {
-            try? data.write(to: persistenceURL)
+    @discardableResult
+    public func saveJobs() -> Bool {
+        let saved: Bool
+        do {
+            try JSONEncoder().encode(jobs).write(to: persistenceURL, options: .atomic)
+            saved = true
+        } catch {
+            saved = false
         }
         syncPowerAssertionState()
+        return saved
     }
     
     /// 自动同步系统待命电源断言状态
     /// 只要队列中存在待派发的定时任务，自动保持系统息屏运行，杜绝休眠冻结导致无法准时派发
     public func syncPowerAssertionState() {
+        guard startsScheduling else { return }
         let hasPending = jobs.contains { job in
             (job.status == .pending || job.status == .waitingForQuota) &&
             job.scheduledExecutionDate != nil
@@ -83,37 +114,17 @@ public final class JobQueueManager: ObservableObject {
     }
     
     public func addJob(_ job: ScheduledJob) {
-        var newJob = job
-        let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
-            for: newJob.strategy,
-            currentQuota: QuotaProbeEngine.shared.currentQuota
-        )
-        newJob.scheduledExecutionDate = nextDate
-        newJob.status = .pending
-        
-        // 注册硬件级 RTC 唤醒
-        _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
-        
+        let newJob = preparedForScheduling(job, currentQuota: QuotaProbeEngine.shared.currentQuota)
         jobs.insert(newJob, at: 0)
         saveJobs()
     }
     
     public func updateJob(_ job: ScheduledJob) {
         if let index = jobs.firstIndex(where: { $0.id == job.id }) {
-            var updated = job
-            let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
-                for: updated.strategy,
-                currentQuota: QuotaProbeEngine.shared.currentQuota
-            )
-            updated.scheduledExecutionDate = nextDate
-            updated.status = .pending
-            
-            // 重新注册硬件级 RTC 唤醒
-            _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
-            
+            guard jobs[index].status != .sending else { return }
+            let updated = preparedForScheduling(job, currentQuota: QuotaProbeEngine.shared.currentQuota)
             jobs[index] = updated
             saveJobs()
-            print("💾 [JobQueueManager] 已成功保存并更新任务: \(updated.title), 下次执行时间: \(nextDate)")
         } else {
             addJob(job)
         }
@@ -125,20 +136,60 @@ public final class JobQueueManager: ObservableObject {
     }
     
     public func togglePause(id: UUID) {
-        if let index = jobs.firstIndex(where: { $0.id == id }) {
-            if case .paused = jobs[index].status {
-                jobs[index].status = .pending
-                let nextDate = SmartScheduler.shared.calculateNextExecutionDate(
-                    for: jobs[index].strategy,
-                    currentQuota: QuotaProbeEngine.shared.currentQuota
-                )
-                jobs[index].scheduledExecutionDate = nextDate
-                _ = PowerGuardian.shared.scheduleWakeEvent(at: nextDate)
-            } else {
-                jobs[index].status = .paused
-            }
-            saveJobs()
+        guard let job = jobs.first(where: { $0.id == id }) else { return }
+        setJobEnabled(id: id, enabled: !job.isEnabled)
+    }
+
+    @discardableResult
+    public func setJobEnabled(id: UUID, enabled: Bool) -> Bool {
+        guard let index = jobs.firstIndex(where: { $0.id == id }),
+              jobs[index].status != .sending,
+              !enabled || jobs[index].hasValidDestination else { return false }
+        if jobs[index].isEnabled == enabled { return true }
+        jobs[index].status = enabled ? .pending : .paused
+        jobs[index] = preparedForScheduling(jobs[index], currentQuota: QuotaProbeEngine.shared.currentQuota)
+        saveJobs()
+        return true
+    }
+
+    private func registerWake(at date: Date) {
+        if startsScheduling { _ = PowerGuardian.shared.scheduleWakeEvent(at: date) }
+    }
+
+    func preparedForScheduling(_ job: ScheduledJob, currentQuota: QuotaSnapshot) -> ScheduledJob {
+        var scheduled = job
+        guard job.isEnabled, job.hasValidDestination else {
+            scheduled.status = .paused
+            scheduled.scheduledExecutionDate = nil
+            return scheduled
         }
+        if job.templateKind == .quotaContinuation,
+           case .autoOnQuotaReset = job.strategy,
+           currentQuota.resetsAt == nil {
+            scheduled.status = .waitingForQuota
+            scheduled.scheduledExecutionDate = nil
+        } else {
+            let date = SmartScheduler.shared.calculateNextExecutionDate(for: job.strategy, currentQuota: currentQuota)
+            scheduled.status = .pending
+            scheduled.scheduledExecutionDate = date
+            registerWake(at: date)
+        }
+        return scheduled
+    }
+
+    /// Missing quota data must never turn a continuation into an immediate send.
+    func scheduleWaitingContinuations(currentQuota: QuotaSnapshot) {
+        guard currentQuota.resetsAt != nil else { return }
+        var changed = false
+        for index in jobs.indices {
+            let job = jobs[index]
+            if job.templateKind == .quotaContinuation, job.status == .waitingForQuota,
+               job.scheduledExecutionDate == nil, case .autoOnQuotaReset = job.strategy {
+                jobs[index] = preparedForScheduling(job, currentQuota: currentQuota)
+                changed = true
+            }
+        }
+        if changed { saveJobs() }
     }
     
     /// 调度主循环（每 5 秒检测一次队列中的到期任务）
@@ -164,7 +215,8 @@ public final class JobQueueManager: ObservableObject {
     }
     
     public func executeJob(jobId: UUID) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
+        guard let index = jobs.firstIndex(where: { $0.id == jobId }),
+              jobs[index].status != .sending, jobs[index].hasValidDestination else { return }
         let job = jobs[index]
         
         jobs[index].status = .sending
@@ -235,16 +287,9 @@ public final class JobQueueManager: ObservableObject {
                         
                         // 🌟 核心：如果是每日定时重复任务 (dailyAtTime)，自动计算并排定明天的下一次执行时间，保持 pending 状态
                         if case .dailyAtTime = self.jobs[idx].strategy {
-                            let tomorrowDate = SmartScheduler.shared.calculateNextExecutionDate(
-                                for: self.jobs[idx].strategy,
-                                currentQuota: QuotaProbeEngine.shared.currentQuota
-                            )
-                            self.jobs[idx].scheduledExecutionDate = tomorrowDate
-                            self.jobs[idx].status = .pending
-                            
-                            // 重新注册明天的硬件级 RTC 唤醒
-                            _ = PowerGuardian.shared.scheduleWakeEvent(at: tomorrowDate)
-                            print("🔄 [JobQueueManager] 每日任务 [\(self.jobs[idx].title)] 执行完成，已自动排定明天执行时间: \(tomorrowDate)")
+                            // A manual send while disabled must not re-enable the daily schedule.
+                            self.jobs[idx].status = job.isEnabled ? .pending : .paused
+                            self.jobs[idx] = self.preparedForScheduling(self.jobs[idx], currentQuota: QuotaProbeEngine.shared.currentQuota)
                         } else {
                             // 一次性任务派发成功后已沉淀到历史记录，自动从待发调度队列移除
                             let removedJob = self.jobs.remove(at: idx)
@@ -253,14 +298,8 @@ public final class JobQueueManager: ObservableObject {
                     } else {
                         if case .dailyAtTime = self.jobs[idx].strategy {
                             // 每日重复任务即使单次派发异常（已在消息历史中记录），也自动排定明天同一时刻执行，防止单次错误造成周期无限停滞
-                            let tomorrowDate = SmartScheduler.shared.calculateNextExecutionDate(
-                                for: self.jobs[idx].strategy,
-                                currentQuota: QuotaProbeEngine.shared.currentQuota
-                            )
-                            self.jobs[idx].scheduledExecutionDate = tomorrowDate
-                            self.jobs[idx].status = .pending
-                            _ = PowerGuardian.shared.scheduleWakeEvent(at: tomorrowDate)
-                            print("⚠️ [JobQueueManager] 每日任务 [\(self.jobs[idx].title)] 派发异常，已自动排定下一次执行时间: \(tomorrowDate)")
+                            self.jobs[idx].status = job.isEnabled ? .pending : .paused
+                            self.jobs[idx] = self.preparedForScheduling(self.jobs[idx], currentQuota: QuotaProbeEngine.shared.currentQuota)
                         } else {
                             self.jobs[idx].status = .failed(finalError ?? "发送失败或发生网络异常")
                         }

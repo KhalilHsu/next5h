@@ -17,6 +17,9 @@ public struct JobEditorSheetView: View {
     @State private var destination: TargetDestination = TargetDestination()
     @State private var strategy: ScheduleStrategy = .dailyAtTime(hour: 7, minute: 0)
     @State private var dispatchMode: DispatchMode = .silentAPI
+    @State private var isEnabled = true
+    @State private var templateKind: JobTemplateKind?
+    @State private var loadedJobID: UUID?
     
     @State private var selectedTemplateIndex: Int? = nil
     
@@ -27,6 +30,10 @@ public struct JobEditorSheetView: View {
     private var isExistingJob: Bool {
         guard let id = editingJob?.id else { return false }
         return queueManager.jobs.contains(where: { $0.id == id })
+    }
+
+    private var hasValidDestination: Bool {
+        ScheduledJob(destination: destination, templateKind: templateKind).hasValidDestination
     }
     
     public var body: some View {
@@ -45,6 +52,13 @@ public struct JobEditorSheetView: View {
                 }
                 
                 Spacer()
+
+                Toggle(L10n.tr(zh: "自动派发", en: "Automatic dispatch", ja: "自動送信"), isOn: $isEnabled)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .font(.caption)
+                    .disabled(!hasValidDestination)
+                    .help(L10n.tr(zh: "关闭后保留消息，暂停自动派发", en: "Keep this message and suspend automatic dispatch when off", ja: "オフにするとメッセージを保持して自動送信を停止"))
                 
                 Button {
                     closeSheet()
@@ -98,6 +112,12 @@ public struct JobEditorSheetView: View {
                                         strategy: .autoOnQuotaReset(safetyDelayMinutes: 1),
                                         dispatchMode: .silentAPI
                                     )
+                                )
+
+                                templateButton(
+                                    title: L10n.tr(zh: "5H 续任务", en: "5H continue", ja: "5H続行"),
+                                    index: 3,
+                                    preset: ScheduledJob.makeQuotaContinuationPreset()
                                 )
                                 
                                 templateButton(
@@ -162,7 +182,15 @@ public struct JobEditorSheetView: View {
                     
                     HStack(alignment: .top, spacing: 28) {
                         VStack(alignment: .leading, spacing: 24) {
-                            DestinationPickerView(destination: $destination)
+                            VStack(alignment: .leading, spacing: 8) {
+                                DestinationPickerView(destination: $destination)
+                                    .id(loadedJobID)
+                                if templateKind == .quotaContinuation, !hasValidDestination {
+                                    Text(L10n.tr(zh: "选择要继续的已有会话后，再开启自动派发。", en: "Choose the existing conversation to continue before enabling automatic dispatch.", ja: "続行する既存の会話を選択してから、自動送信をオンにしてください。"))
+                                        .font(.caption)
+                                        .foregroundStyle(Next5hTheme.accent)
+                                }
+                            }
                             ModelAndEffortPickerView(model: $model, reasoningEffort: $reasoningEffort, speed: $speed)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -174,6 +202,7 @@ public struct JobEditorSheetView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.top, 4)
+
                 }
                 .padding(24)
             }
@@ -212,7 +241,7 @@ public struct JobEditorSheetView: View {
                 .buttonStyle(Next5hButtonStyle(kind: .primary))
                 .controlSize(.regular)
                 .keyboardShortcut(.return, modifiers: .command)
-                .disabled(prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (isEnabled && !hasValidDestination))
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
@@ -235,6 +264,8 @@ public struct JobEditorSheetView: View {
                 self.destination = TargetDestination()
                 self.strategy = .dailyAtTime(hour: 7, minute: 0)
                 self.dispatchMode = .silentAPI
+                self.isEnabled = true
+                self.templateKind = nil
             }
         }
     }
@@ -259,6 +290,9 @@ public struct JobEditorSheetView: View {
         self.destination = job.destination
         self.strategy = job.strategy
         self.dispatchMode = job.dispatchMode
+        self.isEnabled = job.isEnabled
+        self.templateKind = job.templateKind
+        self.loadedJobID = job.id
     }
     
     private func closeSheet() {
@@ -273,18 +307,17 @@ public struct JobEditorSheetView: View {
             : title
         
         if let existing = editingJob {
-            let updated = ScheduledJob(
-                id: existing.id,
-                title: resolvedTitle,
-                prompt: prompt,
-                model: safeModel,
-                reasoningEffort: reasoningEffort,
-                speed: speed,
-                destination: destination,
-                strategy: strategy,
-                dispatchMode: dispatchMode,
-                status: .pending
-            )
+            var updated = existing
+            updated.title = resolvedTitle
+            updated.prompt = prompt
+            updated.model = safeModel
+            updated.reasoningEffort = reasoningEffort
+            updated.speed = speed
+            updated.destination = destination
+            updated.strategy = strategy
+            updated.dispatchMode = dispatchMode
+            updated.status = isEnabled ? .pending : .paused
+            updated.templateKind = templateKind
             queueManager.updateJob(updated)
         } else {
             let newJob = ScheduledJob(
@@ -297,7 +330,8 @@ public struct JobEditorSheetView: View {
                 destination: destination,
                 strategy: strategy,
                 dispatchMode: dispatchMode,
-                status: .pending
+                status: isEnabled ? .pending : .paused,
+                templateKind: templateKind
             )
             queueManager.addJob(newJob)
         }

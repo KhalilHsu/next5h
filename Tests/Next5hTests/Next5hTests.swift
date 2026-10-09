@@ -3,6 +3,150 @@ import AppKit
 @testable import Next5h
 
 final class Next5hTests: XCTestCase {
+    private func withIsolatedQueue(initialJobs: [ScheduledJob]? = nil, _ body: (JobQueueManager, URL, UserDefaults) throws -> Void) throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("Next5hTests-\(UUID())")
+        let suite = "Next5hTests.\(UUID())"
+        let preferences = try XCTUnwrap(UserDefaults(suiteName: suite))
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.removeItem(at: folder)
+            preferences.removePersistentDomain(forName: suite)
+        }
+        let url = folder.appendingPathComponent("jobs.json")
+        if let initialJobs {
+            try JSONEncoder().encode(initialJobs).write(to: url)
+        }
+        let queue = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+        try body(queue, url, preferences)
+    }
+
+    func testContinuationPresetStartsDisabledAndRequiresExistingConversation() throws {
+        let preset = ScheduledJob.makeQuotaContinuationPreset()
+        XCTAssertEqual(preset.status, .paused)
+        XCTAssertFalse(preset.isEnabled)
+        XCTAssertFalse(preset.hasValidDestination)
+        XCTAssertNil(preset.scheduledExecutionDate)
+        XCTAssertEqual(preset.strategy, .autoOnQuotaReset(safetyDelayMinutes: 1))
+        XCTAssertEqual(preset.dispatchMode, .silentAPI)
+        XCTAssertEqual(preset.templateKind, .quotaContinuation)
+        XCTAssertFalse(preset.prompt.isEmpty)
+        let restored = try JSONDecoder().decode(ScheduledJob.self, from: JSONEncoder().encode(preset))
+        XCTAssertEqual(restored, preset)
+    }
+
+    func testLegacyJobEnablementSurvivesDecodingWithoutTemplateKind() throws {
+        for status in [JobStatus.pending, .paused] {
+            let job = ScheduledJob(status: status)
+            var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(job)) as? [String: Any])
+            json.removeValue(forKey: "templateKind")
+            let data = try JSONSerialization.data(withJSONObject: json)
+            let decoded = try JSONDecoder().decode(ScheduledJob.self, from: data)
+            XCTAssertEqual(decoded.status, status)
+            XCTAssertEqual(decoded.isEnabled, status != .paused)
+            XCTAssertNil(decoded.templateKind)
+        }
+    }
+
+    func testDisabledJobStaysOffAcrossAddEditDueCheckAndRestart() throws {
+        try withIsolatedQueue { queue, url, preferences in
+            let job = ScheduledJob(prompt: "Do not dispatch", status: .paused, scheduledExecutionDate: Date().addingTimeInterval(-60))
+            queue.addJob(job)
+            var edited = try XCTUnwrap(queue.jobs.first(where: { $0.id == job.id }))
+            edited.title = "Edited while off"
+            queue.updateJob(edited)
+            queue.checkAndExecuteDueJobs()
+            let saved = try XCTUnwrap(queue.jobs.first(where: { $0.id == job.id }))
+            XCTAssertEqual(saved.status, .paused)
+            XCTAssertNil(saved.scheduledExecutionDate)
+            let reloaded = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+            XCTAssertEqual(reloaded.jobs.first(where: { $0.id == job.id }), saved)
+        }
+    }
+
+    func testSwitchRecalculatesScheduleAndRetainsMessageSettings() throws {
+        try withIsolatedQueue { queue, _, _ in
+            let job = ScheduledJob(title: "Switch", prompt: "Keep me", reasoningEffort: .medium, strategy: .delayDuration(seconds: 3600))
+            queue.addJob(job)
+            XCTAssertTrue(queue.setJobEnabled(id: job.id, enabled: false))
+            XCTAssertNil(queue.jobs.first(where: { $0.id == job.id })?.scheduledExecutionDate)
+            // A stale persisted due date must still be ignored while the switch is off.
+            queue.jobs[0].scheduledExecutionDate = Date().addingTimeInterval(-60)
+            queue.checkAndExecuteDueJobs()
+            XCTAssertEqual(queue.jobs.first(where: { $0.id == job.id })?.status, .paused)
+            let before = Date()
+            XCTAssertTrue(queue.setJobEnabled(id: job.id, enabled: true))
+            let enabled = try XCTUnwrap(queue.jobs.first(where: { $0.id == job.id }))
+            XCTAssertEqual(enabled.status, .pending)
+            XCTAssertGreaterThanOrEqual(try XCTUnwrap(enabled.scheduledExecutionDate), before.addingTimeInterval(3600))
+            XCTAssertEqual(enabled.prompt, job.prompt)
+            XCTAssertEqual(enabled.model, job.model)
+            XCTAssertEqual(enabled.reasoningEffort, job.reasoningEffort)
+            XCTAssertEqual(enabled.destination, job.destination)
+            XCTAssertEqual(enabled.strategy, job.strategy)
+            queue.jobs[0].status = .sending
+            XCTAssertFalse(queue.setJobEnabled(id: job.id, enabled: false))
+            XCTAssertEqual(queue.jobs[0].status, .sending)
+        }
+    }
+
+    func testContinuationCannotEnableOrDispatchBeforeChoosingConversation() throws {
+        try withIsolatedQueue { queue, _, _ in
+            var job = ScheduledJob.makeQuotaContinuationPreset()
+            queue.jobs = [job]
+            XCTAssertFalse(queue.setJobEnabled(id: job.id, enabled: true))
+            queue.executeJob(jobId: job.id)
+            XCTAssertEqual(queue.jobs[0].status, .paused)
+            job.destination.conversationAction = .newSession
+            XCTAssertFalse(job.hasValidDestination)
+            job.destination.conversationAction = .existing(id: "chosen-session", title: "Task to resume")
+            queue.updateJob(job)
+            XCTAssertEqual(queue.jobs[0].status, .paused)
+            XCTAssertTrue(queue.setJobEnabled(id: job.id, enabled: true))
+            XCTAssertTrue(queue.jobs[0].isEnabled)
+            XCTAssertEqual(queue.jobs[0].destination, job.destination)
+        }
+    }
+
+    func testContinuationWaitsForQuotaThenSchedulesWithSafetyBuffer() throws {
+        try withIsolatedQueue { queue, _, _ in
+            var job = ScheduledJob.makeQuotaContinuationPreset()
+            job.destination.conversationAction = .existing(id: "chosen-session", title: "Task")
+            job.status = .pending
+            let unknown = QuotaSnapshot(usedPercent: 0, resetsAt: nil, windowMinutes: 300)
+            let waiting = queue.preparedForScheduling(job, currentQuota: unknown)
+            XCTAssertEqual(waiting.status, .waitingForQuota)
+            XCTAssertNil(waiting.scheduledExecutionDate)
+            queue.jobs = [waiting, ScheduledJob.makeQuotaContinuationPreset()]
+            queue.checkAndExecuteDueJobs()
+            XCTAssertEqual(queue.jobs[0].status, .waitingForQuota)
+            let reset = Date().addingTimeInterval(3600)
+            queue.scheduleWaitingContinuations(currentQuota: QuotaSnapshot(usedPercent: 100, resetsAt: reset, windowMinutes: 300))
+            XCTAssertEqual(queue.jobs[0].status, .pending)
+            XCTAssertEqual(try XCTUnwrap(queue.jobs[0].scheduledExecutionDate).timeIntervalSince(reset), 60, accuracy: 0.01)
+            XCTAssertEqual(queue.jobs[1].status, .paused)
+            XCTAssertNil(queue.jobs[1].scheduledExecutionDate)
+        }
+    }
+
+    func testContinuationStarterInstalledOnceWithoutReplacingOrRestoringDeletedJobs() throws {
+        let original = ScheduledJob(title: "User's existing job", prompt: "Preserve", strategy: .customTime(Date().addingTimeInterval(7200)), scheduledExecutionDate: Date().addingTimeInterval(7200))
+        try withIsolatedQueue(initialJobs: [original]) { queue, url, preferences in
+            XCTAssertEqual(queue.jobs.filter { $0.templateKind == .quotaContinuation }.count, 1)
+            let existing = try XCTUnwrap(queue.jobs.first(where: { $0.templateKind == nil }))
+            XCTAssertEqual(existing, original)
+            let restored = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+            XCTAssertEqual(restored.jobs.count, 2)
+            XCTAssertEqual(restored.jobs.first(where: { $0.id == existing.id }), existing)
+            let preset = try XCTUnwrap(restored.jobs.first(where: { $0.templateKind == .quotaContinuation }))
+            restored.deleteJob(id: preset.id)
+            let afterDelete = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+            XCTAssertEqual(afterDelete.jobs.map(\.id), [existing.id])
+            afterDelete.deleteJob(id: existing.id)
+            let empty = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+            XCTAssertTrue(empty.jobs.isEmpty)
+        }
+    }
+
     @MainActor
     func testMenuKeepsDistinctSessionsWithDuplicateTitles() {
         let titles = ["Morning", "Review", "Morning", "Review", "Release"]
@@ -42,8 +186,6 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(decoded.templateStrategy(sourceJob: source), source.strategy)
         XCTAssertEqual(decoded.templateStrategy(sourceJob: nil), .dailyAtTime(hour: 7, minute: 0))
     }
-
-
 
 
     func testDynamicModelCatalogLoading() {
@@ -203,51 +345,48 @@ final class Next5hTests: XCTestCase {
         XCTAssertEqual(manager.records.count, initialCount)
     }
     
-    func testJobQueueManagerLifecycle() {
-        let queue = JobQueueManager.shared
-        let originalJobs = queue.jobs
-        
-        let testJob = ScheduledJob(
-            id: UUID(),
-            title: "生命周期测试任务",
-            prompt: "echo test",
-            strategy: .dailyAtTime(hour: 7, minute: 0),
-            dispatchMode: .silentAPI
-        )
-        
-        // 1. 测试添加
-        queue.addJob(testJob)
-        XCTAssertTrue(queue.jobs.contains(where: { $0.id == testJob.id }))
-        
-        // 2. 测试暂停与恢复
-        queue.togglePause(id: testJob.id)
-        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
-            XCTAssertEqual(found.status, .paused)
-        } else {
-            XCTFail("Job not found")
+    func testJobQueueManagerLifecycle() throws {
+        try withIsolatedQueue { queue, _, _ in
+
+            let testJob = ScheduledJob(
+                id: UUID(),
+                title: "生命周期测试任务",
+                prompt: "echo test",
+                strategy: .dailyAtTime(hour: 7, minute: 0),
+                dispatchMode: .silentAPI
+            )
+
+            // 1. 测试添加
+            queue.addJob(testJob)
+            XCTAssertTrue(queue.jobs.contains(where: { $0.id == testJob.id }))
+
+            // 2. 测试暂停与恢复
+            queue.togglePause(id: testJob.id)
+            if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+                XCTAssertEqual(found.status, .paused)
+            } else {
+                XCTFail("Job not found")
+            }
+
+            queue.togglePause(id: testJob.id)
+            if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+                XCTAssertEqual(found.status, .pending)
+                XCTAssertNotNil(found.scheduledExecutionDate)
+            }
+
+            // 3. 测试更新
+            var modified = testJob
+            modified.title = "已修改的测试任务"
+            queue.updateJob(modified)
+            if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
+                XCTAssertEqual(found.title, "已修改的测试任务")
+            }
+
+            // 4. 测试删除
+            queue.deleteJob(id: testJob.id)
+            XCTAssertFalse(queue.jobs.contains(where: { $0.id == testJob.id }))
+
         }
-        
-        queue.togglePause(id: testJob.id)
-        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
-            XCTAssertEqual(found.status, .pending)
-            XCTAssertNotNil(found.scheduledExecutionDate)
-        }
-        
-        // 3. 测试更新
-        var modified = testJob
-        modified.title = "已修改的测试任务"
-        queue.updateJob(modified)
-        if let found = queue.jobs.first(where: { $0.id == testJob.id }) {
-            XCTAssertEqual(found.title, "已修改的测试任务")
-        }
-        
-        // 4. 测试删除
-        queue.deleteJob(id: testJob.id)
-        XCTAssertFalse(queue.jobs.contains(where: { $0.id == testJob.id }))
-        
-        // 恢复原始队列
-        queue.jobs = originalJobs
-        queue.saveJobs()
     }
     
     func testAppStateNavigationIntegrity() {
@@ -392,40 +531,33 @@ final class Next5hTests: XCTestCase {
         XCTAssertTrue(out.contains("codex-cli"), "输出应包含 codex-cli 版本信息")
     }
     
-    func testDailyJobAutoRescheduleOnFailure() {
-        let qm = JobQueueManager.shared
-        
-        let dailyJob = ScheduledJob(
-            id: UUID(),
-            title: "单元测试每日任务",
-            prompt: "ping",
-            model: ModelCatalogService.shared.defaultModel,
-            reasoningEffort: .low,
-            speed: .standard,
-            destination: TargetDestination(),
-            strategy: .dailyAtTime(hour: 6, minute: 40),
-            dispatchMode: .silentAPI,
-            status: .failed("模拟的测试失败"),
-            createdAt: Date(),
-            scheduledExecutionDate: Date().addingTimeInterval(-3600) // 过去的时间
-        )
-        
-        qm.jobs.append(dailyJob)
-        
-        // 模拟触发保存与加载自愈
-        qm.saveJobs()
-        
-        // 验证处于 failed 状态的 dailyAtTime 任务能被检测自愈或重排
-        if let idx = qm.jobs.firstIndex(where: { $0.id == dailyJob.id }) {
-            let next = SmartScheduler.shared.calculateNextExecutionDate(
-                for: qm.jobs[idx].strategy,
-                currentQuota: QuotaProbeEngine.shared.currentQuota
+    func testDailyJobAutoRescheduleOnFailure() throws {
+        try withIsolatedQueue { qm, url, preferences in
+
+            let dailyJob = ScheduledJob(
+                id: UUID(),
+                title: "单元测试每日任务",
+                prompt: "ping",
+                model: ModelCatalogService.shared.defaultModel,
+                reasoningEffort: .low,
+                speed: .standard,
+                destination: TargetDestination(),
+                strategy: .dailyAtTime(hour: 6, minute: 40),
+                dispatchMode: .silentAPI,
+                status: .failed("模拟的测试失败"),
+                createdAt: Date(),
+                scheduledExecutionDate: Date().addingTimeInterval(-3600) // 过去的时间
             )
-            XCTAssertGreaterThan(next, Date(), "每日任务的下一次时间应大于当前时间")
-            
-            // 清理测试数据
-            qm.jobs.remove(at: idx)
+
+            qm.jobs.append(dailyJob)
+
+            // 模拟触发保存与加载自愈
             qm.saveJobs()
+
+            let reloaded = JobQueueManager(persistenceURL: url, preferences: preferences, startsScheduling: false)
+            let rescheduled = try XCTUnwrap(reloaded.jobs.first(where: { $0.id == dailyJob.id }))
+            XCTAssertEqual(rescheduled.status, .pending)
+            XCTAssertGreaterThan(try XCTUnwrap(rescheduled.scheduledExecutionDate), Date())
         }
     }
     

@@ -1,5 +1,9 @@
 import Foundation
 
+public enum JobTemplateKind: String, Codable {
+    case quotaContinuation
+}
+
 public enum JobStatus: Codable, Equatable {
     case pending
     case waitingForQuota
@@ -47,6 +51,17 @@ public struct ScheduledJob: Identifiable, Codable, Equatable {
     public var executedAt: Date?
     public var lastErrorMessage: String?
     public var isDefaultPreset: Bool
+    public var templateKind: JobTemplateKind?
+
+    /// The existing paused state persists the automatic-dispatch switch, including legacy jobs.
+    public var isEnabled: Bool { status != .paused }
+
+    public var hasValidDestination: Bool {
+        if case .existing(let id, _) = destination.conversationAction {
+            return !id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        return templateKind != .quotaContinuation
+    }
     
     public init(
         id: UUID = UUID(),
@@ -63,7 +78,8 @@ public struct ScheduledJob: Identifiable, Codable, Equatable {
         scheduledExecutionDate: Date? = nil,
         executedAt: Date? = nil,
         lastErrorMessage: String? = nil,
-        isDefaultPreset: Bool = false
+        isDefaultPreset: Bool = false,
+        templateKind: JobTemplateKind? = nil
     ) {
         self.id = id
         self.title = title
@@ -80,6 +96,28 @@ public struct ScheduledJob: Identifiable, Codable, Equatable {
         self.executedAt = executedAt
         self.lastErrorMessage = lastErrorMessage
         self.isDefaultPreset = isDefaultPreset
+        self.templateKind = templateKind
+    }
+
+    public static func makeQuotaContinuationPreset() -> ScheduledJob {
+        ScheduledJob(
+            title: L10n.tr(zh: "5H 解封后继续任务", en: "Continue task after 5H reset", ja: "5H復活後にタスクを続行"),
+            prompt: L10n.tr(
+                zh: "5H 额度已恢复。请继续本会话中因额度限制中断的任务，从上次停止的位置接着完成。保留已有进度，不要重复已经完成的步骤；完成后汇报结果和仍待处理的事项。",
+                en: "The 5H quota has recovered. Continue the task in this conversation that was interrupted by the quota limit, starting where you left off. Preserve existing progress and do not repeat completed steps. Report the results and any remaining work when finished.",
+                ja: "5Hクォータが回復しました。この会話でクォータ制限により中断したタスクを、前回停止したところから続行してください。既存の進捗を保持し、完了済みの手順を繰り返さず、完了後に結果と残りの作業を報告してください。"
+            ),
+            model: ModelCatalogService.shared.defaultModel,
+            reasoningEffort: .medium,
+            destination: TargetDestination(conversationAction: .existing(
+                id: "",
+                title: L10n.tr(zh: "选择要继续的会话", en: "Choose a conversation to continue", ja: "続行する会話を選択")
+            )),
+            strategy: .autoOnQuotaReset(safetyDelayMinutes: 1),
+            status: .paused,
+            isDefaultPreset: true,
+            templateKind: .quotaContinuation
+        )
     }
     
     /// 默认初始任务预置 (精确预定明天 07:00, 6 Luna, 推理强度: 低, 速度: 标准, "嗨")
