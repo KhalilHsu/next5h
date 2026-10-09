@@ -31,6 +31,21 @@ public struct ProbeLogView: View {
             .frame(height: 110)
             .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+
+            HStack(spacing: 7) {
+                Circle()
+                    .fill(quotaEngine.currentQuota.isConnectedToChatGPTApp ? Next5hTheme.mint : Next5hTheme.secondary)
+                    .frame(width: 5, height: 5)
+                Text(quotaEngine.currentQuota.isConnectedToChatGPTApp
+                     ? L10n.dashboardConnectedChatGPT(pid: quotaEngine.currentQuota.chatGPTPid ?? 0)
+                     : L10n.dashboardChatGPTNotRunning)
+                Spacer()
+                if CodexSessionWatcher.shared.isInActiveBurstWindow {
+                    Text(L10n.tr(zh: "活跃追踪 · 每分钟更新", en: "Active tracking · Every minute", ja: "高頻度追跡 · 毎分更新"))
+                }
+            }
+            .font(.caption2)
+            .foregroundStyle(Next5hTheme.secondary)
         }
         .next5hSurface()
     }

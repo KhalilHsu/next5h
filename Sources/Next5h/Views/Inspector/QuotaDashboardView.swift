@@ -28,23 +28,6 @@ public struct QuotaDashboardView: View {
                 .padding(.top, 24)
                 .padding(.bottom, 6)
 
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(quotaEngine.currentQuota.isConnectedToChatGPTApp ? Next5hTheme.mint : Next5hTheme.secondary)
-                        .frame(width: 7, height: 7)
-                    Text(quotaEngine.currentQuota.isConnectedToChatGPTApp
-                         ? L10n.dashboardConnectedChatGPT(pid: quotaEngine.currentQuota.chatGPTPid ?? 0)
-                         : L10n.dashboardChatGPTNotRunning)
-                        .font(.caption)
-                        .foregroundStyle(Next5hTheme.secondary)
-                    Spacer()
-                    if CodexSessionWatcher.shared.isInActiveBurstWindow {
-                        Text(L10n.tr(zh: "活跃追踪 · 每分钟更新", en: "Active tracking · Every minute", ja: "高頻度追跡 · 毎分更新"))
-                            .font(.caption2)
-                            .foregroundStyle(Next5hTheme.accent)
-                    }
-                }
-
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .top, spacing: 16) {
                         fiveHourCard.frame(minWidth: 300)
