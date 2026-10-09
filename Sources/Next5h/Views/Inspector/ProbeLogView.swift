@@ -14,7 +14,7 @@ public struct ProbeLogView: View {
                 Spacer()
                 Text(L10n.tr(zh: "节能模式运行中", en: "Eco Mode Active", ja: "省電力モード稼働中"))
                     .font(.caption2)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Next5hTheme.mint)
             }
             
             ScrollView {
@@ -29,11 +29,9 @@ public struct ProbeLogView: View {
                 .padding(8)
             }
             .frame(height: 110)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
+            .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .next5hSurface()
     }
 }

@@ -133,7 +133,6 @@ public enum L10n {
     public static func historyTotalCount(_ count: Int) -> String {
         tr(zh: "累计 \(count) 次", en: "Total: \(count)", ja: "累計 \(count) 件")
     }
-    public static var historyClearAll: String { tr(zh: "清空历史", en: "Clear History", ja: "履歴を消去") }
     public static var historyFilterAll: String { tr(zh: "全部", en: "All", ja: "すべて") }
     public static var historyFilterSuccess: String { tr(zh: "成功", en: "Success", ja: "成功") }
     public static var historyFilterFailure: String { tr(zh: "失败", en: "Failure", ja: "失敗") }
@@ -146,13 +145,7 @@ public enum L10n {
            en: "Execution logs and response times will appear here after scheduled messages are dispatched.",
            ja: "スケジュールメッセージが送信されると、実行履歴と所要時間がここに表示されます。")
     }
-    public static var historyClearConfirmTitle: String { tr(zh: "清空发送历史", en: "Clear Message History", ja: "送信履歴の消去") }
-    public static var historyClearConfirmMessage: String {
-        tr(zh: "确定要清空全部消息发送记录吗？此操作无法撤销。",
-           en: "Are you sure you want to clear all message logs? This cannot be undone.",
-           ja: "すべてのメッセージ送信履歴を消去してもよろしいですか？この操作は取り消せません。")
-    }
-    public static var confirmClear: String { tr(zh: "清空", en: "Clear", ja: "消去") }
+
     public static var cancel: String { tr(zh: "取消", en: "Cancel", ja: "キャンセル") }
     
     // MARK: - 额度看板 (QuotaDashboardView)

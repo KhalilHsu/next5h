@@ -10,23 +10,22 @@ public struct DispatchModePickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(L10n.tr(zh: "发送模式", en: "Dispatch Mode", ja: "送信モード"), systemImage: "paperplane")
-                .font(.subheadline.bold())
-            
-            Picker("", selection: $dispatchMode) {
-                ForEach(DispatchMode.allCases) { mode in
-                    Text(mode.displayName).tag(mode)
+            Next5hSectionHeading(title: L10n.tr(zh: "发送方式", en: "Delivery", ja: "送信方法"), symbol: "paperplane")
+            Next5hSegmentedControl(
+                label: L10n.tr(zh: "发送方式", en: "Delivery", ja: "送信方法"),
+                selection: $dispatchMode,
+                options: DispatchMode.allCases.map { mode in
+                    .init(value: mode, title: mode == .silentAPI
+                          ? L10n.tr(zh: "后台发送", en: "Background", ja: "バックグラウンド")
+                          : L10n.tr(zh: "前台窗口", en: "Foreground", ja: "前面ウィンドウ"))
                 }
-            }
-            .pickerStyle(.segmented)
-            
+            )
+
             Text(dispatchMode.detailDescription)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+
     }
 }

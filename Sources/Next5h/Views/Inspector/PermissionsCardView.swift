@@ -18,13 +18,9 @@ public struct PermissionsCardView: View {
                 Button {
                     showPowerSheet = true
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "bolt.shield")
-                        Text(L10n.tr(zh: "休眠与唤醒支持指南", en: "Sleep & Wake Guide", ja: "スリープ＆復帰ガイド"))
-                    }
-                    .font(.caption2)
+                    Next5hButtonLabel(L10n.tr(zh: "休眠与唤醒支持指南", en: "Sleep & Wake Guide", ja: "スリープ＆復帰ガイド"), systemImage: "bolt.shield")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(Next5hButtonStyle(kind: .secondary))
                 .controlSize(.small)
             }
             
@@ -46,9 +42,7 @@ public struct PermissionsCardView: View {
                 )
             }
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+        .next5hSurface()
         .sheet(isPresented: $showPowerSheet) {
             PowerGuidelinesSheetView()
         }

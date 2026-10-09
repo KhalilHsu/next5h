@@ -11,8 +11,6 @@ public struct MainSplitView: View {
             // 顶部 Header 区域（左侧品牌 + 严格居中的放大的 Tab 切换器）
             TopHeaderView()
             
-            // 增加 Tab 到下方面板的舒缓呼吸间距
-            Spacer().frame(height: 6)
             
             // 主体工作区
             Group {
@@ -27,11 +25,10 @@ public struct MainSplitView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .foregroundStyle(Next5hTheme.ink)
+        .tint(Next5hTheme.accent)
         .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity, minHeight: 520, idealHeight: 640, maxHeight: .infinity)
-        .background(
-            VisualEffectView(material: .sidebar, blendingMode: .behindWindow, state: .active)
-                .ignoresSafeArea()
-        )
+        .background(Next5hTheme.background.ignoresSafeArea())
         .background(
             // 全局快捷键 ⌘N 监听
             Button("") {
@@ -90,7 +87,7 @@ public struct TopHeaderView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "timer")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Next5hTheme.accent)
                     
                     Text("Next5h")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
@@ -104,7 +101,9 @@ public struct TopHeaderView: View {
             // 中央：严格居中的 3 个 Tab（位置与样式保持 100% 不变）
             NavigationToolbarView()
         }
-        .frame(height: 56)
+        .frame(height: 48)
+        .background(Next5hTheme.chrome)
+        .overlay(alignment: .bottom) { Rectangle().fill(Next5hTheme.border).frame(height: 1) }
         .frame(maxWidth: .infinity)
     }
 }
@@ -125,9 +124,9 @@ public struct NavigationToolbarView: View {
         if quota.isLocked || quota.remainingPercent < 20 {
             return .red
         } else if quota.remainingPercent < 50 {
-            return .orange
+            return Next5hTheme.warning
         } else {
-            return .green
+            return Next5hTheme.mint
         }
     }
 
@@ -139,7 +138,7 @@ public struct NavigationToolbarView: View {
             tabButton(
                 title: NavigationTab.queue.title,
                 badge: activeCount > 0 ? "\(activeCount)" : nil,
-                badgeColor: .blue,
+                badgeColor: Next5hTheme.accent,
                 tab: .queue
             )
 
@@ -148,7 +147,7 @@ public struct NavigationToolbarView: View {
             tabButton(
                 title: NavigationTab.history.title,
                 badge: nil,
-                badgeColor: .secondary,
+                badgeColor: Next5hTheme.secondary,
                 tab: .history
             )
 
@@ -164,10 +163,10 @@ public struct NavigationToolbarView: View {
         .padding(3.5)
         .background(
             Capsule()
-                .fill(Color(nsColor: .quaternaryLabelColor).opacity(0.35))
+                .fill(Next5hTheme.border.opacity(0.4))
                 .overlay(
                     Capsule()
-                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.8)
+                        .strokeBorder(Next5hTheme.border, lineWidth: 0.8)
                 )
         )
         .fixedSize()
@@ -196,7 +195,7 @@ public struct NavigationToolbarView: View {
             HStack(spacing: 5) {
                 Text(title)
                     .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                    .foregroundStyle(isSelected ? Color.primary : Color(nsColor: .secondaryLabelColor))
+                    .foregroundStyle(isSelected ? Next5hTheme.onAccent : Next5hTheme.secondary)
 
                 if let badge = badge {
                     Text(badge)
@@ -205,9 +204,9 @@ public struct NavigationToolbarView: View {
                         .padding(.vertical, 1.5)
                         .background(
                             Capsule()
-                                .fill(badgeColor.opacity(isSelected ? 0.18 : 0.12))
+                                .fill(isSelected ? Next5hTheme.onAccent.opacity(0.15) : badgeColor.opacity(0.10))
                         )
-                        .foregroundStyle(badgeColor)
+                        .foregroundStyle(isSelected ? Next5hTheme.onAccent : badgeColor)
                 }
             }
             .padding(.horizontal, 12)
@@ -215,16 +214,11 @@ public struct NavigationToolbarView: View {
             .background {
                 if isSelected {
                     Capsule()
-                        .fill(Color(nsColor: .textBackgroundColor))
-                        .shadow(color: Color.black.opacity(0.12), radius: 2, x: 0, y: 1)
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5)
-                        )
+                        .fill(Next5hTheme.accent)
                         .matchedGeometryEffect(id: "selected_nav_tab", in: segmentNamespace)
                 } else if isHovered {
                     Capsule()
-                        .fill(Color.primary.opacity(0.05))
+                        .fill(Next5hTheme.accent.opacity(0.08))
                 }
             }
         }

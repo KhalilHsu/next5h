@@ -26,48 +26,39 @@ public struct StrategyPickerView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(L10n.tr(zh: "触发策略", en: "Trigger Schedule", ja: "トリガー条件"), systemImage: "clock.badge.checkmark")
-                .font(.subheadline.bold())
-            
-            Picker("", selection: strategyTypeBinding) {
-                Text(L10n.tr(zh: "🌅 每日定时", en: "🌅 Daily", ja: "🌅 毎日定時")).tag(1)
-                Text(L10n.tr(zh: "⚡️ 5H解封 (+1m)", en: "⚡️ 5H Reset (+1m)", ja: "⚡️ 5H復活時 (+1分)")).tag(0)
-                Text(L10n.tr(zh: "⏳ 延时 X 小时", en: "⏳ Delay X Hours", ja: "⏳ X時間遅延")).tag(2)
-                Text(L10n.tr(zh: "📅 具体时间", en: "📅 Specific Date", ja: "📅 日時指定")).tag(3)
-            }
-            .pickerStyle(.segmented)
-            
+            Next5hSectionHeading(title: L10n.tr(zh: "何时发送", en: "Schedule", ja: "送信タイミング"), symbol: "clock")
+            Next5hSegmentedControl(
+                label: L10n.tr(zh: "触发策略", en: "Schedule", ja: "トリガー条件"),
+                selection: strategyTypeBinding,
+                options: [
+                    .init(value: 1, title: L10n.tr(zh: "每日", en: "Daily", ja: "毎日")),
+                    .init(value: 0, title: L10n.tr(zh: "5H 解封", en: "5H reset", ja: "5H復活")),
+                    .init(value: 2, title: L10n.tr(zh: "延时", en: "Delay", ja: "遅延")),
+                    .init(value: 3, title: L10n.tr(zh: "指定时间", en: "Date", ja: "日時"))
+                ]
+            )
+
             Group {
                 if strategyType == 1 {
                     HStack(spacing: 12) {
-                        Image(systemName: "repeat.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.orange)
-                        
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(L10n.tr(zh: "每日循环触发时间：", en: "Daily Trigger Time:", ja: "毎日の送信時刻："))
+                            Text(L10n.tr(zh: "每天发送", en: "Send daily", ja: "毎日の送信時刻"))
                                 .font(.caption.bold())
-                            Text(L10n.tr(
-                                zh: "每天在该时间自动唤醒 Mac 并发送任务",
-                                en: "Wakes Mac daily at this time to send message",
-                                ja: "毎日この時刻にMacを自動起動してメッセージを送信します"
-                            ))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
                         }
                         
                         Spacer()
                         
-                        DatePicker("", selection: dailyTimeBinding, displayedComponents: .hourAndMinute)
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
+                        Next5hDateField(
+                            label: L10n.tr(zh: "每日发送时间", en: "Daily send time", ja: "毎日の送信時刻"),
+                            selection: dailyTimeBinding
+                        )
                     }
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.08)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
                 } else if strategyType == 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "hourglass.badge.plus")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Next5hTheme.accent)
                         if let reset = quotaEngine.currentQuota.resetsAt {
                             Text(L10n.tr(
                                 zh: "预计在 \(formattedTargetResetTime(reset)) 自动派发 (+1分钟安全缓冲)",
@@ -86,7 +77,7 @@ public struct StrategyPickerView: View {
                         }
                     }
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
                 } else if strategyType == 2 {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
@@ -101,29 +92,26 @@ public struct StrategyPickerView: View {
                         Slider(value: delayHoursBinding, in: 0.5...12, step: 0.5)
                     }
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
                 } else if strategyType == 3 {
-                    HStack {
-                        Text(L10n.tr(zh: "指定日期时间:", en: "Specific Date & Time:", ja: "指定日時:"))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L10n.tr(zh: "指定日期时间", en: "Specific date and time", ja: "指定日時"))
                             .font(.caption.bold())
-                        Spacer()
-                        DatePicker("", selection: customDateBinding)
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
+                        Next5hDateField(
+                            label: L10n.tr(zh: "指定日期时间", en: "Specific date and time", ja: "指定日時"),
+                            selection: customDateBinding,
+                            includesDate: true
+                        )
                     }
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.05)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Next5hTheme.subtle))
                 }
             }
             
-            Divider()
-            
-            // 锁屏与休眠唤醒保障提示
-            PowerQuickTipBanner()
+            PowerQuickTipBanner(compact: true)
+                .padding(.top, 8)
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+
     }
 
     // Derive the visible controls from the bound strategy so template changes

@@ -44,11 +44,6 @@ public final class DispatchHistoryManager: ObservableObject {
         saveRecords()
     }
     
-    public func clearAll() {
-        records.removeAll()
-        saveRecords()
-    }
-    
     /// 统计今日已成功派发次数
     public var todaySuccessCount: Int {
         let calendar = Calendar.current

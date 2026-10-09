@@ -21,8 +21,7 @@ public struct ModelAndEffortPickerView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label(L10n.tr(zh: "模型与推理参数", en: "Model & Reasoning", ja: "モデル＆推論設定"), systemImage: "cpu")
-                    .font(.subheadline.bold())
+                Next5hSectionHeading(title: L10n.tr(zh: "模型与参数", en: "Model & parameters", ja: "モデルと設定"), symbol: "cpu")
                 Spacer()
                 
                 // 原生胶囊下拉菜单 [ 5.6 Sol 中 ⌵ ]
@@ -109,7 +108,7 @@ public struct ModelAndEffortPickerView: View {
                     }
                 } label: {
                     HStack(spacing: 6) {
-                        Text("\(model.displayName) \(reasoningEffort.shortLabel)")
+                        Text("\(model.displayName) · \(reasoningEffort.shortLabel) · \(speed.displayName)")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.primary)
                         
@@ -119,55 +118,13 @@ public struct ModelAndEffortPickerView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 5)
-                    .background(Capsule().fill(Color(nsColor: .controlBackgroundColor)))
-                    .overlay(Capsule().stroke(Color.secondary.opacity(0.25), lineWidth: 1))
+                    .background(Next5hTheme.subtle, in: RoundedRectangle(cornerRadius: 7))
                 }
                 .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
             }
             
-            // 当前参数概要说明
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.tr(zh: "当前模型", en: "Current Model", ja: "現在のモデル"))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(model.displayName)
-                        .font(.caption.bold())
-                }
-                
-                Divider()
-                    .frame(height: 20)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.tr(zh: "推理强度", en: "Reasoning Effort", ja: "推論レベル"))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(reasoningEffort.displayName)
-                        .font(.caption.bold())
-                }
-                
-                if model.supportsSpeedSelection {
-                    Divider()
-                        .frame(height: 20)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.tr(zh: "响应速度", en: "Speed", ja: "応答速度"))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(speed.displayName)
-                            .font(.caption.bold())
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 6).fill(Color.secondary.opacity(0.05)))
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
         .onAppear {
             if !catalogService.availableModels.contains(where: { $0.slug == model.slug }) {
                 model = catalogService.defaultModel

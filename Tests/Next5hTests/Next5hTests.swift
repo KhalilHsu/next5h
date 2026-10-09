@@ -1,7 +1,20 @@
 import XCTest
+import AppKit
 @testable import Next5h
 
 final class Next5hTests: XCTestCase {
+    @MainActor
+    func testMenuKeepsDistinctSessionsWithDuplicateTitles() {
+        let titles = ["Morning", "Review", "Morning", "Review", "Release"]
+        let control = NSPopUpButton(frame: .zero, pullsDown: false)
+        control.menu = Next5hMenuPicker<String>.makeMenu(titles: titles)
+
+        XCTAssertEqual(control.itemTitles, titles)
+        control.selectItem(at: 3)
+        XCTAssertEqual(control.indexOfSelectedItem, 3)
+        XCTAssertEqual(control.titleOfSelectedItem, "Review")
+    }
+
     func testHistoryTemplateStrategyPersistence() throws {
         let strategies: [ScheduleStrategy] = [
             .dailyAtTime(hour: 9, minute: 25),

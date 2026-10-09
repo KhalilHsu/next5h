@@ -7,7 +7,6 @@ public struct HistoryListView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     
     @State private var filterSelection: HistoryFilter = .all
-    @State private var showClearConfirmation: Bool = false
     
     public init() {}
     
@@ -39,7 +38,7 @@ public struct HistoryListView: View {
     }
     
     private var successRateText: String {
-        guard !historyManager.records.isEmpty else { return "100%" }
+        guard !historyManager.records.isEmpty else { return "—" }
         let successCount = historyManager.records.filter { $0.isSuccess }.count
         let rate = Double(successCount) / Double(historyManager.records.count) * 100.0
         return "\(Int(rate))%"
@@ -48,17 +47,12 @@ public struct HistoryListView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                // 顶部标题与统计栏 (无分割线，严格对齐)
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .center, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
                         HStack(spacing: 7) {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.secondary)
-
                             Text(L10n.historyTitle)
-                                .font(.title3.bold())
-                            
+                                .font(.system(size: 21, weight: .semibold))
+
                             if !historyManager.records.isEmpty {
                                 Text(L10n.historyTotalCount(historyManager.records.count))
                                     .font(.caption.bold())
@@ -68,71 +62,42 @@ public struct HistoryListView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        
-                        Text(L10n.historySubtitle)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    
-                    Spacer()
-                    
-                    if !historyManager.records.isEmpty {
-                        Button(role: .destructive) {
-                            showClearConfirmation = true
-                        } label: {
-                            Label(L10n.historyClearAll, systemImage: "trash")
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.regular)
-                    }
-                }
-                .padding(.top, 14)
-                .padding(.bottom, 2)
-                
-                // 统计仪表条与过滤筛选器 (已移除上下所有分割线，与卡片严格左对齐)
-                HStack(alignment: .center) {
-                    // 快捷统计指标
-                    HStack(spacing: 16) {
-                        HStack(spacing: 4) {
-                            Text(L10n.historyTodaySuccess)
+
+                        if historyManager.records.isEmpty {
+                            Text(L10n.historySubtitle)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("\(historyManager.todaySuccessCount)" + L10n.tr(zh: " 次", en: "", ja: " 件"))
-                                .font(.caption.bold())
-                                .foregroundStyle(.green)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Text(L10n.historySuccessRate)
+                                .foregroundStyle(Next5hTheme.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            (Text(L10n.historyTodaySuccess + " ")
+                             + Text("\(historyManager.todaySuccessCount)" + L10n.tr(zh: " 次", en: "", ja: " 件"))
+                                .fontWeight(.medium)
+                             + Text("  ·  " + L10n.historySuccessRate + " ")
+                             + Text(successRateText).fontWeight(.medium))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(successRateText)
-                                .font(.caption.bold())
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Next5hTheme.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // 状态筛选器
-                    Picker("", selection: $filterSelection) {
-                        ForEach(HistoryFilter.allCases) { filter in
-                            Text(filter.label).tag(filter)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .fixedSize()
+
+                    Spacer(minLength: 0)
+
+                    Next5hSegmentedControl(
+                        label: L10n.tr(zh: "结果筛选", en: "Result filter", ja: "結果フィルター"),
+                        selection: $filterSelection,
+                        options: HistoryFilter.allCases.map { .init(value: $0, title: $0.label) }
+                    )
+                    .frame(width: 180)
                 }
-                .padding(.vertical, 2)
-                
+                .padding(.top, 24)
+                .padding(.bottom, 10)
+
                 // 历史流水列表 (使用 LazyVStack 保证与上方所有文字/指标 100% 像素级对齐)
                 if filteredRecords.isEmpty {
                     VStack(spacing: 12) {
                         Spacer().frame(height: 36)
                         Image(systemName: historyManager.records.isEmpty ? "clock.arrow.circlepath" : "line.3.horizontal.decrease.circle")
-                            .font(.system(size: 38, weight: .light))
+                            .font(.system(size: 28, weight: .light))
                             .foregroundStyle(.tertiary)
                         
                         Text(historyManager.records.isEmpty ? L10n.historyEmptyTitle : L10n.tr(zh: "当前筛选条件下无记录", en: "No records for this filter", ja: "該当する履歴はありません"))
@@ -159,18 +124,7 @@ public struct HistoryListView: View {
             .padding(.horizontal, 24)
         }
         .scrollContentBackground(.hidden)
-        .confirmationDialog(
-            L10n.historyClearConfirmTitle,
-            isPresented: $showClearConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(L10n.confirmClear, role: .destructive) {
-                historyManager.clearAll()
-            }
-            Button(L10n.cancel, role: .cancel) {}
-        } message: {
-            Text(L10n.historyClearConfirmMessage)
-        }
+
     }
 }
 
@@ -203,7 +157,7 @@ struct HistoryRecordRowView: View {
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: record.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(record.isSuccess ? .green : .red)
+                    .foregroundStyle(record.isSuccess ? Next5hTheme.mint : .red)
                 
                 Text(record.title)
                     .font(.headline)
@@ -233,8 +187,8 @@ struct HistoryRecordRowView: View {
                     .font(.caption2.bold())
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.orange.opacity(0.15)))
-                    .foregroundStyle(.orange)
+                    .background(Capsule().fill(Next5hTheme.accent.opacity(0.08)))
+                    .foregroundStyle(Next5hTheme.secondary)
                 
                 Text(L10n.tr(zh: "推理: \(record.reasoningEffort)", en: "Effort: \(record.reasoningEffort)", ja: "推論: \(record.reasoningEffort)"))
                     .font(.caption2)
@@ -249,8 +203,8 @@ struct HistoryRecordRowView: View {
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.blue.opacity(0.12)))
-                    .foregroundStyle(.blue)
+                    .background(Capsule().fill(Next5hTheme.subtle))
+                    .foregroundStyle(Next5hTheme.secondary)
                 
                 Text(record.triggerStrategySummary)
                     .font(.caption2)
@@ -296,15 +250,14 @@ struct HistoryRecordRowView: View {
                             hasCopied = false
                         }
                     } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: hasCopied ? "checkmark" : "doc.on.doc")
-                            Text(hasCopied
-                                 ? L10n.tr(zh: "已复制", en: "Copied", ja: "コピー完了")
-                                 : L10n.tr(zh: "复制", en: "Copy", ja: "コピー"))
-                        }
-                        .font(.system(size: 10))
+                        Next5hButtonLabel(
+                            hasCopied
+                                ? L10n.tr(zh: "已复制", en: "Copied", ja: "コピー完了")
+                                : L10n.tr(zh: "复制", en: "Copy", ja: "コピー"),
+                            systemImage: hasCopied ? "checkmark" : "doc.on.doc"
+                        )
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(Next5hButtonStyle(kind: .quiet))
                 }
                 
                 Text(record.prompt)
@@ -313,7 +266,7 @@ struct HistoryRecordRowView: View {
                     .lineLimit(4)
                     .padding(8)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor).opacity(0.8)))
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Next5hTheme.subtle))
             }
             
             // 若失败，展示错误信息提示条
@@ -335,31 +288,23 @@ struct HistoryRecordRowView: View {
                 .padding(.vertical, 2)
             
             // 底部操作按钮栏
-            HStack(spacing: 12) {
+            HStack(spacing: Next5hButtonMetrics.groupSpacing) {
                 // 1. 再次发送
                 Button {
                     resendJob()
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.clockwise")
-                        Text(L10n.tr(zh: "再次发送", en: "Resend", ja: "再送信"))
-                    }
-                    .font(.caption.bold())
+                    Next5hButtonLabel(L10n.tr(zh: "再次发送", en: "Resend", ja: "再送信"), systemImage: "arrow.clockwise")
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(Next5hButtonStyle(kind: .quiet))
                 .disabled(isResending)
                 
                 // 2. 以此历史记录为模板新建任务 (直接唤起 Sheet)
                 Button {
                     loadIntoComposer()
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "doc.badge.plus")
-                        Text(L10n.tr(zh: "以此为模板新建", en: "Use as Template", ja: "テンプレートとして利用"))
-                    }
-                    .font(.caption)
+                    Next5hButtonLabel(L10n.tr(zh: "以此为模板新建", en: "Use as Template", ja: "テンプレートとして利用"), systemImage: "doc.badge.plus")
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(Next5hButtonStyle(kind: .quiet))
                 
                 // 3. 在 Codex 中打开会话
                 if let sessionId = record.targetSessionId, !sessionId.isEmpty {
@@ -368,13 +313,9 @@ struct HistoryRecordRowView: View {
                             NSWorkspace.shared.open(url)
                         }
                     } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bubble.left.and.bubble.right")
-                            Text(L10n.tr(zh: "在 Codex 中打开", en: "Open in Codex", ja: "Codex で開く"))
-                        }
-                        .font(.caption)
+                        Next5hButtonLabel(L10n.tr(zh: "在 Codex 中打开", en: "Open in Codex", ja: "Codex で開く"), systemImage: "bubble.left.and.bubble.right")
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(Next5hButtonStyle(kind: .quiet))
                 }
                 
                 Spacer()
@@ -383,16 +324,13 @@ struct HistoryRecordRowView: View {
                 Button(role: .destructive) {
                     historyManager.deleteRecord(id: record.id)
                 } label: {
-                    Image(systemName: "trash")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Next5hButtonLabel(systemImage: "trash")
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(Next5hButtonStyle(kind: .quiet, iconOnly: true))
+                .help(L10n.tr(zh: "删除记录", en: "Delete record", ja: "履歴を削除"))
             }
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 11).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
-        .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
+        .next5hSurface(padding: 18)
     }
     
     private func resendJob() {

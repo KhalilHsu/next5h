@@ -14,12 +14,8 @@ public struct QueueListView: View {
                 HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 7) {
-                            Image(systemName: "list.bullet.rectangle")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.secondary)
-
                             Text(L10n.queueTitle)
-                                .font(.title3.bold())
+                                .font(.system(size: 21, weight: .semibold))
                             
                             if !queueManager.jobs.isEmpty {
                                 Text(L10n.queuePendingCount(queueManager.jobs.count))
@@ -42,16 +38,16 @@ public struct QueueListView: View {
                     Button {
                         appState.openNewJobSheet()
                     } label: {
-                        Label(L10n.queueNewMessage, systemImage: "plus")
+                        Next5hButtonLabel(L10n.queueNewMessage, systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(Next5hButtonStyle(kind: .primary))
                     .controlSize(.regular)
                 }
-                .padding(.top, 14)
-                .padding(.bottom, 2)
+                .padding(.top, 24)
+                .padding(.bottom, 10)
                 
                 // 电源与休眠唤醒状态保障提示 (无多余分割线，左右严格对齐)
-                PowerQuickTipBanner()
+
                 
                 // 任务卡片列表 (使用 LazyVStack 保证与顶部各元素 100% 像素级对齐)
                 if queueManager.jobs.isEmpty {
@@ -59,7 +55,7 @@ public struct QueueListView: View {
                         Spacer().frame(height: 36)
                         
                         Image(systemName: "calendar.badge.clock")
-                            .font(.system(size: 38, weight: .light))
+                            .font(.system(size: 28, weight: .light))
                             .foregroundStyle(.tertiary)
                         
                         Text(L10n.queueEmptyTitle)
@@ -74,9 +70,9 @@ public struct QueueListView: View {
                         Button {
                             appState.openNewJobSheet()
                         } label: {
-                            Label(L10n.queueNewMessage, systemImage: "plus")
+                            Next5hButtonLabel(L10n.queueNewMessage, systemImage: "plus")
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(Next5hButtonStyle(kind: .primary))
                         .controlSize(.regular)
                         .padding(.top, 4)
                         
@@ -108,9 +104,9 @@ struct QueueJobCardView: View {
         let calendar = Calendar.current
         let formatter = DateFormatter()
         if calendar.isDateInToday(date) {
-            formatter.dateFormat = "\(L10n.dateToday) HH:mm:ss"
+            formatter.dateFormat = "\(L10n.dateToday) HH:mm"
         } else if calendar.isDateInTomorrow(date) {
-            formatter.dateFormat = "\(L10n.dateTomorrow) HH:mm:ss"
+            formatter.dateFormat = "\(L10n.dateTomorrow) HH:mm"
         } else {
             formatter.dateFormat = "MM-dd HH:mm"
         }
@@ -118,145 +114,54 @@ struct QueueJobCardView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // 1. 顶部状态与标题
-            HStack(alignment: .center, spacing: 8) {
-                Image(systemName: job.status.iconName)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(statusColor(job.status))
-                
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
                 Text(job.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                
-                Spacer()
-                
-                // 状态文本
-                Text(job.status.statusName)
-                    .font(.caption2.bold())
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(statusColor(job.status).opacity(0.12)))
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(2)
+                Spacer(minLength: 8)
+                Label(job.status.statusName, systemImage: job.status.iconName)
+                    .font(.caption2.weight(.medium))
                     .foregroundStyle(statusColor(job.status))
-                
-                // 模型与推理强度标签
-                Text("\(job.model.displayName) \(job.reasoningEffort.shortLabel)")
-                    .font(.caption2.bold())
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.orange.opacity(0.15)))
-                    .foregroundStyle(.orange)
+                    .background(statusColor(job.status).opacity(0.10), in: RoundedRectangle(cornerRadius: 5))
             }
-            
-            // 2. Prompt 内容预览
+
             Text(job.prompt)
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundStyle(.primary.opacity(0.9))
+                .font(.system(size: 13))
                 .lineLimit(2)
-                .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor).opacity(0.7)))
-            
-            // 3. 元信息属性栏 (目标、派发模式、下次执行时间)
-            HStack(spacing: 12) {
-                Label(job.destination.summary, systemImage: "folder")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                
-                Text("•")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary.opacity(0.5))
-                
-                Label(job.dispatchMode == .silentAPI
-                      ? L10n.tr(zh: "静默 CLI", en: "Silent CLI", ja: "サイレント CLI")
-                      : L10n.tr(zh: "前台 GUI", en: "Foreground GUI", ja: "前面 GUI"),
-                      systemImage: "paperplane")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                if let sched = job.scheduledExecutionDate {
-                    HStack(spacing: 4) {
-                        if case .dailyAtTime(let h, let m) = job.strategy {
-                            Image(systemName: "repeat")
-                                .font(.system(size: 9))
-                            Text(L10n.tr(
-                                zh: "每天 \(String(format: "%02d:%02d", h, m)) · 下次: \(formatDateTime(sched))",
-                                en: "Daily \(String(format: "%02d:%02d", h, m)) · Next: \(formatDateTime(sched))",
-                                ja: "毎日 \(String(format: "%02d:%02d", h, m)) · 次回: \(formatDateTime(sched))"
-                            ))
-                        } else {
-                            Image(systemName: "clock")
-                                .font(.system(size: 9))
-                            Text(L10n.tr(
-                                zh: "预定: \(formatDateTime(sched))",
-                                en: "Scheduled: \(formatDateTime(sched))",
-                                ja: "予定: \(formatDateTime(sched))"
-                            ))
-                        }
-                    }
-                    .font(.caption2.bold())
-                    .foregroundStyle(.orange)
-                }
-            }
-            
-            Divider()
                 .padding(.vertical, 2)
-            
-            // 4. 底部操作按钮栏
-            HStack(spacing: 14) {
-                Button {
-                    queueManager.executeJob(jobId: job.id)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "play.circle.fill")
-                        Text(L10n.actionSendNow)
-                    }
-                    .font(.caption.bold())
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) { metadata }
+                VStack(alignment: .leading, spacing: 5) { metadata }
+            }
+            .font(.caption)
+            .foregroundStyle(Next5hTheme.secondary)
+
+            Divider().overlay(Next5hTheme.border)
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) {
+                    scheduleSummary
+                    Spacer(minLength: 10)
+                    actions
                 }
-                .buttonStyle(.borderless)
-                
-                Button {
-                    appState.openEditJobSheet(job: job)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "pencil")
-                        Text(L10n.actionEdit)
-                    }
-                    .font(.caption)
+                VStack(alignment: .leading, spacing: 10) {
+                    scheduleSummary
+                    actions
                 }
-                .buttonStyle(.borderless)
-                
-                Button {
-                    queueManager.togglePause(id: job.id)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: job.status == .paused ? "arrow.clockwise" : "pause.circle")
-                        Text(job.status == .paused
-                             ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
-                             : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"))
-                    }
-                    .font(.caption)
-                    .foregroundStyle(job.status == .paused ? .green : .secondary)
-                }
-                .buttonStyle(.borderless)
-                
-                Spacer()
-                
-                Button(role: .destructive) {
-                    queueManager.deleteJob(id: job.id)
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.borderless)
             }
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 11).fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
-        .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
+        .next5hSurface(padding: 18)
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(statusColor(job.status))
+                .frame(width: 3)
+                .padding(.vertical, 14)
+        }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             appState.openEditJobSheet(job: job)
@@ -293,11 +198,58 @@ struct QueueJobCardView: View {
         }
     }
     
+    @ViewBuilder
+    private var metadata: some View {
+        Label(job.destination.summary, systemImage: "folder")
+        Text("\(job.model.displayName) · \(job.reasoningEffort.shortLabel)")
+        Text(job.dispatchMode == .silentAPI
+             ? L10n.tr(zh: "后台发送", en: "Background", ja: "バックグラウンド送信")
+             : L10n.tr(zh: "前台发送", en: "Foreground", ja: "前面送信"))
+    }
+
+    private var scheduleSummary: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            if let date = job.scheduledExecutionDate {
+                Label(formatDateTime(date), systemImage: "clock")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Next5hTheme.accent)
+                    .monospacedDigit()
+            }
+            Text(job.strategy.displayName)
+                .font(.caption2)
+                .foregroundStyle(Next5hTheme.secondary)
+        }
+    }
+
+    private var actions: some View {
+        HStack(spacing: Next5hButtonMetrics.groupSpacing) {
+            Button { queueManager.executeJob(jobId: job.id) } label: {
+                Next5hButtonLabel(L10n.actionSendNow, systemImage: "play.circle")
+            }
+            Button { appState.openEditJobSheet(job: job) } label: {
+                Next5hButtonLabel(L10n.actionEdit, systemImage: "pencil")
+            }
+            Button { queueManager.togglePause(id: job.id) } label: {
+                Next5hButtonLabel(job.status == .paused
+                      ? L10n.tr(zh: "恢复排程", en: "Resume", ja: "再開")
+                      : L10n.tr(zh: "暂停", en: "Pause", ja: "一時停止"),
+                      systemImage: job.status == .paused ? "arrow.clockwise" : "pause.circle")
+            }
+            Button(role: .destructive) { queueManager.deleteJob(id: job.id) } label: {
+                Next5hButtonLabel(systemImage: "trash")
+            }
+            .buttonStyle(Next5hButtonStyle(kind: .quiet, iconOnly: true))
+            .help(L10n.tr(zh: "删除任务", en: "Delete Task", ja: "タスクを削除"))
+        }
+        .buttonStyle(Next5hButtonStyle(kind: .quiet))
+    }
+
     private func statusColor(_ status: JobStatus) -> Color {
         switch status {
-        case .pending, .waitingForQuota: return .orange
-        case .sending: return .blue
-        case .completed: return .green
+        case .pending: return Next5hTheme.accent
+        case .waitingForQuota: return Next5hTheme.warning
+        case .sending: return Next5hTheme.accent
+        case .completed: return Next5hTheme.mint
         case .failed: return .red
         case .paused: return .secondary
         }

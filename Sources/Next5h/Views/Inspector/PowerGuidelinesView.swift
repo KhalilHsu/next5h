@@ -1,78 +1,56 @@
 import SwiftUI
 
-/// 硬件休眠与无人值守支持指南弹窗
 public struct PowerGuidelinesSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var loc = LocalizationManager.shared
-    
+
     public init() {}
-    
+
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 弹窗顶部栏
-            HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "bolt.shield.fill")
-                        .font(.title2)
-                        .foregroundStyle(.orange)
-                    Text(L10n.tr(
-                        zh: "Mac 锁屏与休眠派发保障指南",
-                        en: "Mac Lock Screen & Sleep Dispatch Guide",
-                        ja: "画面ロック＆スリープ復帰ガイド"
-                    ))
-                    .font(.title3.bold())
+        VStack(spacing: 0) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(L10n.tr(zh: "锁屏与休眠", en: "Lock screen & sleep", ja: "画面ロックとスリープ"))
+                        .font(.system(size: 20, weight: .semibold))
+                    Text(L10n.tr(zh: "找到适合你设备的发送方式", en: "Choose the setup that fits your Mac", ja: "Macに適した送信方法を確認"))
+                        .font(.system(size: 12))
+                        .foregroundStyle(Next5hTheme.secondary)
                 }
                 Spacer()
-                Button(L10n.tr(zh: "完成", en: "Done", ja: "完了")) {
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                Button(L10n.tr(zh: "完成", en: "Done", ja: "完了")) { dismiss() }
+                    .buttonStyle(Next5hButtonStyle(kind: .primary))
+                    .keyboardShortcut(.escape, modifiers: [])
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(Color(nsColor: .windowBackgroundColor))
-            
-            Divider()
-            
+            .padding(24)
+
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    // 核心总结 Alert
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .font(.title3)
-                            .foregroundStyle(.green)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(L10n.tr(
-                                zh: "全自动息屏待命保活 (Standby Guard) 已内置生效",
-                                en: "Built-in Automatic Standby Guard is Active",
-                                ja: "自動画面消灯待機ガードが標準有効化されています"
-                            ))
-                            .font(.headline)
-                            Text(L10n.tr(
-                                zh: "只要队列中有待发任务，Next5h 会自动申请系统级防休眠断言（屏幕正常熄灭/锁屏，但系统内核清醒），07:00 等预定时间毫秒级准时派发，零终端操作，零特权依赖。",
-                                en: "As long as jobs are pending, Next5h automatically keeps the kernel awake (display can sleep/lock). Dispatches right on time with zero terminal steps.",
-                                ja: "未送信ジョブがある場合、Next5hが自動でカーネル稼働を維持（画面は正常に消灯/ロック）。端末操作不要で定刻にミリ秒単位で送信されます。"
-                            ))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 28) {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "checkmark.shield")
+                            .foregroundStyle(Next5hTheme.mint)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(L10n.tr(zh: "推荐：后台发送，MacBook 开盖并接通电源", en: "Recommended: background delivery, with your MacBook open and plugged in", ja: "推奨：バックグラウンド送信、MacBookは開蓋して給電"))
+                                .font(.system(size: 13, weight: .medium))
+                            Text(L10n.tr(zh: "有待发任务时，Next5h 自动保持系统待命；屏幕仍可熄灭或锁定。", en: "Pending jobs keep the system ready. Your display can still sleep or lock.", ja: "未送信ジョブがある間は待機状態を維持。画面は消灯・ロックできます。"))
+                                .font(.system(size: 12))
+                                .foregroundStyle(Next5hTheme.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(12)
+                    .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.green.opacity(0.08)))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.green.opacity(0.2), lineWidth: 1))
-                    
+                    .background(Next5hTheme.mint.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+
                     // 场景一：Mac 台式机
                     PowerScenarioCard(
                         icon: "macstudio",
                         title: L10n.tr(
-                            zh: "1. Mac 台式机 (Mac mini / Studio / Pro / iMac)",
-                            en: "1. Desktop Mac (Mac mini / Studio / Pro / iMac)",
-                            ja: "1. デスクトップ Mac (Mac mini / Studio / Pro / iMac)"
+                            zh: "Mac 台式机",
+                            en: "Desktop Mac",
+                            ja: "デスクトップ Mac"
                         ),
                         badge: L10n.tr(zh: "全天候无忧", en: "24/7 Always Ready", ja: "常時稼働可能"),
-                        badgeColor: .green,
+                        badgeColor: Next5hTheme.mint,
                         rows: [
                             (
                                 L10n.tr(zh: "锁屏 / 显示器关闭", en: "Lock Screen / Display Sleep", ja: "画面ロック / ディスプレイ消灯"),
@@ -90,9 +68,9 @@ public struct PowerGuidelinesSheetView: View {
                     // 场景二：MacBook 笔记本
                     PowerScenarioCard(
                         icon: "laptopcomputer",
-                        title: L10n.tr(zh: "2. MacBook 笔记本 (Air / Pro)", en: "2. MacBook (Air / Pro)", ja: "2. MacBook (Air / Pro)"),
+                        title: L10n.tr(zh: "MacBook", en: "MacBook", ja: "MacBook"),
                         badge: L10n.tr(zh: "需注意开合盖", en: "Lid Status Matters", ja: "画面開閉状態に注意"),
-                        badgeColor: .orange,
+                        badgeColor: Next5hTheme.warning,
                         rows: [
                             (
                                 L10n.tr(zh: "开盖 + 连接电源 (推荐)", en: "Lid Open + Plugged In (Recommended)", ja: "開蓋 + 電源接続 (推奨)"),
@@ -120,9 +98,9 @@ public struct PowerGuidelinesSheetView: View {
                     // 场景三：发送模式选择
                     PowerScenarioCard(
                         icon: "paperplane.circle.fill",
-                        title: L10n.tr(zh: "3. 任务派发模式与锁屏兼容性", en: "3. Dispatch Mode & Lock Screen Compatibility", ja: "3. 送信モードと画面ロックの互換性"),
+                        title: L10n.tr(zh: "发送方式", en: "Delivery mode", ja: "送信方法"),
                         badge: L10n.tr(zh: "推荐静默模式", en: "Silent Mode Recommended", ja: "サイレント推奨"),
-                        badgeColor: .blue,
+                        badgeColor: Next5hTheme.accent,
                         rows: [
                             (
                                 L10n.tr(zh: "后台静默 CLI 模式 (默认)", en: "Silent Background CLI (Default)", ja: "バックグラウンド CLI (デフォルト)"),
@@ -137,25 +115,7 @@ public struct PowerGuidelinesSheetView: View {
                         ]
                     )
                     
-                    // 底层技术原理一览
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(L10n.tr(zh: "🛠 底层技术守护机制", en: "🛠 System Guard Mechanisms", ja: "🛠 技術的保護メカニズム"))
-                                .font(.caption.bold())
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(PowerGuardian.shared.isStandbyAssertionActive ? Color.green : Color.secondary.opacity(0.4))
-                                    .frame(width: 7, height: 7)
-                                Text(PowerGuardian.shared.isStandbyAssertionActive ?
-                                     L10n.tr(zh: "息屏保活断言运行中", en: "Standby Guard Active", ja: "待機ガード稼働中") :
-                                     L10n.tr(zh: "待命断言空闲 (无待发任务)", en: "Standby Idle", ja: "待機ガード停止中"))
-                                    .font(.caption2)
-                                    .foregroundStyle(PowerGuardian.shared.isStandbyAssertionActive ? .green : .secondary)
-                            }
-                        }
-                        
+                    DisclosureGroup {
                         Text(L10n.tr(
                             zh: "• IOPMAssertionCreateWithName：自动根据队列状态持有 PreventUserIdleSystemSleep 待命断言，屏幕可正常熄灭锁屏，但系统内核保持运转，实现 07:00 毫秒级准时派发。\n• 零终端依赖：普通权限完全原生支持，任务清空时自动释放断言以节省电量。\n• NetworkMonitor：自动检测并等待 Wi-Fi/以太网就绪后再发送，杜绝断网报错。",
                             en: "• IOPMAssertionCreateWithName: Automatically manages PreventUserIdleSystemSleep standby assertion, keeping kernel active while screen sleeps.\n• Zero Terminal Dependency: Completely native without extra privilege prompts; released when idle.\n• NetworkMonitor: Ensures network connectivity before sending to avoid failures.",
@@ -164,92 +124,105 @@ public struct PowerGuidelinesSheetView: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineSpacing(3)
+
+                        HStack(spacing: 6) {
+                            Circle().fill(PowerGuardian.shared.isStandbyAssertionActive ? Next5hTheme.mint : Next5hTheme.secondary).frame(width: 6, height: 6)
+                            Text(PowerGuardian.shared.isStandbyAssertionActive
+                                 ? L10n.tr(zh: "待命守卫运行中", en: "Standby guard active", ja: "待機ガード稼働中")
+                                 : L10n.tr(zh: "待命守卫空闲", en: "Standby guard idle", ja: "待機ガード停止中"))
+                                .font(.caption)
+                        }
+                        .padding(.top, 10)
+                    } label: {
+                        Text(L10n.tr(zh: "了解工作原理", en: "How it works", ja: "動作の仕組み"))
+                            .font(.system(size: 13, weight: .medium))
                     }
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor)))
+                    .padding(.top, 4)
                 }
-                .padding(20)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
             }
         }
-        .frame(minWidth: 580, idealWidth: 620, minHeight: 520, idealHeight: 580)
+        .background(Next5hTheme.surface)
+        .foregroundStyle(Next5hTheme.ink)
+        .tint(Next5hTheme.accent)
+        .frame(minWidth: 600, idealWidth: 640, maxWidth: 700, minHeight: 540, idealHeight: 660, maxHeight: 720)
     }
 }
 
-/// 场景分类卡片
 struct PowerScenarioCard: View {
     let icon: String
     let title: String
     let badge: String
     let badgeColor: Color
     let rows: [(scenario: String, status: String, note: String)]
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(.orange)
-                Text(title)
-                    .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: icon).foregroundStyle(Next5hTheme.secondary)
+                Text(title).font(.system(size: 15, weight: .semibold))
                 Spacer()
-                Text(badge)
-                    .font(.caption2.bold())
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(badgeColor.opacity(0.15)))
-                    .foregroundStyle(badgeColor)
+                Text(badge).font(.system(size: 11)).foregroundStyle(badgeColor)
             }
-            
-            Divider()
-            
-            VStack(spacing: 8) {
-                ForEach(rows.indices, id: \.self) { idx in
-                    let row = rows[idx]
-                    HStack(alignment: .top, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(row.scenario)
-                                .font(.caption.bold())
-                            Text(row.note)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Text(row.status)
-                            .font(.caption.bold())
-                            .foregroundStyle(row.status.contains("100%") ? .green : (row.status.contains("⚠️") ? .orange : (row.status.contains("❌") ? .red : .primary)))
+            ForEach(rows.indices, id: \.self) { index in
+                let row = rows[index]
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 16) {
+                        Text(row.scenario).font(.system(size: 13, weight: .medium))
+                        Spacer(minLength: 8)
+                        Text(cleanStatus(row.status))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(statusColor(row.status))
                     }
-                    .padding(.vertical, 2)
-                    
-                    if idx < rows.count - 1 {
-                        Divider()
-                            .opacity(0.5)
-                    }
+                    Text(row.note)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Next5hTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(2)
                 }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Next5hTheme.subtle, in: RoundedRectangle(cornerRadius: 8))
             }
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+    }
+
+    private func cleanStatus(_ status: String) -> String {
+        status.replacingOccurrences(of: "✅ ", with: "")
+            .replacingOccurrences(of: "⚠️ ", with: "")
+            .replacingOccurrences(of: "❌ ", with: "")
+            .replacingOccurrences(of: "100% ", with: "")
+    }
+
+    private func statusColor(_ status: String) -> Color {
+        if status.contains("⚠️") { return Next5hTheme.warning }
+        if status.contains("❌") { return .red }
+        return Next5hTheme.mint
     }
 }
 
-/// 快速提示条组件 (可嵌入在 Composer 与 Queue)
+/// Composer 中的休眠规则提示。
 public struct PowerQuickTipBanner: View {
     @State private var showSheet: Bool = false
     @ObservedObject private var loc = LocalizationManager.shared
     
-    public init() {}
+    private let compact: Bool
+
+    public init(compact: Bool = false) { self.compact = compact }
     
     public var body: some View {
         HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "checkmark.shield")
+                .foregroundStyle(Next5hTheme.mint)
             VStack(alignment: .leading, spacing: 2) {
-                Text(L10n.tr(
+                Text(compact ? L10n.tr(zh: "锁屏与休眠", en: "Lock screen & sleep", ja: "画面ロックとスリープ") : L10n.tr(
                     zh: "Mac 锁屏与休眠自动唤醒已受保护",
                     en: "Lock Screen & Sleep Auto-Wake Protected",
                     ja: "画面ロック＆スリープ時の自動復帰に対応"
                 ))
                 .font(.caption.bold())
+                if !compact {
                 Text(L10n.tr(
                     zh: "Mac 台式机或 MacBook 开盖插电支持锁屏自动唤醒派发；合盖需外接显示器。",
                     en: "Desktop Mac or open plugged-in MacBook supports wake; clamshell requires display.",
@@ -257,6 +230,7 @@ public struct PowerQuickTipBanner: View {
                 ))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                }
             }
             
             Spacer()
@@ -264,18 +238,13 @@ public struct PowerQuickTipBanner: View {
             Button {
                 showSheet = true
             } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "questionmark.circle")
-                    Text(L10n.tr(zh: "休眠规则", en: "Sleep Rules", ja: "スリープ規則"))
-                }
-                .font(.caption2.bold())
+                Next5hButtonLabel(L10n.tr(zh: "休眠规则", en: "Sleep Rules", ja: "スリープ規則"), systemImage: "questionmark.circle")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(Next5hButtonStyle(kind: .quiet))
             .controlSize(.mini)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor).opacity(0.6)))
+        .font(.caption)
+        .foregroundStyle(Next5hTheme.secondary)
         .sheet(isPresented: $showSheet) {
             PowerGuidelinesSheetView()
         }
